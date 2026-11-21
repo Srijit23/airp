@@ -76,10 +76,10 @@ try {
       dpr: document.querySelector('#world').width / innerWidth,
     };
   });
-  console.log('Production overlook\n' + baseline, 'Settled sample', perf);
+  console.log('Production junction\n' + baseline, 'Settled sample', perf);
   await page.keyboard.press('F3');
   const shot = await page.screenshot({
-    path: out + '/overlook.jpg',
+    path: out + '/junction.jpg',
     quality: 92,
   });
   const range = await page.evaluate(async (encoded) => {
@@ -116,7 +116,7 @@ try {
   await page.evaluate(() => document.exitPointerLock());
   await page.keyboard.press('F3');
   await page.keyboard.press('m');
-  await page.locator('#stations').getByText('Alluvial Flats').click();
+  await page.locator('#stations').getByText('Basin Boulevard').click();
   await ready();
   await page.keyboard.press('g');
   await page.waitForFunction(
@@ -126,6 +126,20 @@ try {
   await page.locator('#atlas-btn').click();
   await page.locator('#zoom-in').click();
   await page.locator('#zoom-out').click();
+  await page.locator('#plan-tools summary').click();
+  for (const name of [
+    'center',
+    'edges',
+    'junction',
+    'graph',
+    'grade',
+    'zone',
+    'parcel',
+  ]) {
+    await page.locator('#layer-' + name).check();
+    if (!['zone', 'parcel'].includes(name))
+      await page.locator('#layer-' + name).uncheck();
+  }
   await page.screenshot({ path: out + '/atlas.jpg', quality: 85 });
   await page.locator('#atlas-map').click({ position: { x: 255, y: 155 } });
   await ready();
@@ -140,6 +154,27 @@ try {
       .textContent.includes('25 detail chunks    25 horizon sectors'),
   );
   await page.screenshot({ path: out + '/seams.jpg', quality: 90 });
+  // Inspect the road geometry in the shipping build at multiple scales.
+  await page.locator('#atlas-btn').click();
+  for (const id of ['zone', 'parcel'])
+    await page.locator('#layer-' + id).uncheck();
+  await close();
+  await page.locator('#settings-btn').click();
+  await page.locator('#grid-check').uncheck();
+  await page.locator('#debug-check').uncheck();
+  await page.locator('[data-mode=fly]').click();
+  await page.locator('[data-quality=medium]').click();
+  await close();
+  for (const [station, file] of [
+    ['Orchard Circle', 'circle'],
+    ['Juniper Heights', 'hill'],
+    ['City overview', 'network'],
+  ]) {
+    await page.locator('#atlas-btn').click();
+    await page.locator('#stations').getByText(station).click();
+    await ready();
+    await page.screenshot({ path: out + '/' + file + '.jpg', quality: 91 });
+  }
   await page.setViewportSize({ width: 600, height: 380 });
   await page.goto(address(dev));
   await ready();
@@ -173,6 +208,7 @@ try {
         () =>
           !e.waitForTerrain &&
           s.settled &&
+          e.roads.settled &&
           s.center === Math.floor(x / 256) + ',' + Math.floor(z / 256),
       );
       snapshots.push([
@@ -180,6 +216,7 @@ try {
         s.sectors.size,
         e.renderer.info.memory.geometries,
         e.renderer.info.memory.textures,
+        e.roads.meshes.size,
       ]);
     }
     e.controls.setMode('ground');
@@ -190,7 +227,15 @@ try {
       const p = e.camera.position;
       worst = Math.max(
         worst,
-        Math.abs(p.y - 1.72 - groundHeight(p.x, p.z, s.resolutionAt(p.x, p.z))),
+        Math.abs(
+          p.y -
+            1.72 -
+            e.roads.surfaceHeight(
+              p.x,
+              p.z,
+              groundHeight(p.x, p.z, s.resolutionAt(p.x, p.z)),
+            ),
+        ),
       );
     }
     e.controls.keys.clear();
@@ -227,7 +272,7 @@ try {
   assert.deepEqual(route.snapshots[4], route.snapshots.at(-1));
   assert.ok(
     route.snapshots.every(
-      (p) => p[2] <= p[0] + p[1] + 2 && p[3] === route.snapshots[0][3],
+      (p) => p[2] <= p[0] + p[1] + p[4] + 2 && p[3] === route.snapshots[0][3],
     ),
   );
   assert.ok(route.snapshots.every((p) => p[0] === 49 && p[1] === 25));

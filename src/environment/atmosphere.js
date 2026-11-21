@@ -16,6 +16,7 @@ export class Atmosphere {
     this.hemi = new HemisphereLight(0xe3efff, 0x95836a, 1.3);
     this.sun = new DirectionalLight(0xffe2ad, 2.65);
     this.sun.shadow.autoUpdate = false;
+    this.sun.shadow.intensity = 0.62;
     this.sun.shadow.bias = -0.00035;
     this.sun.shadow.normalBias = 0.8;
     Object.assign(this.sun.shadow.camera, {

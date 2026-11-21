@@ -1,4 +1,5 @@
 import { clamp, district, stations } from '../data/world.js';
+import { drawStreets } from './city-plan.js';
 import { elevation } from '../terrain/field.js';
 
 const half = district.halfSize,
@@ -153,6 +154,7 @@ export class Atlas {
       ctx.lineTo(px(half), py(i));
     }
     ctx.stroke();
+    if (this.overlay) drawStreets(ctx, px, py, unit, this.overlay, full);
     if (full)
       for (const s of stations) {
         const x = px(s.x),
@@ -161,7 +163,8 @@ export class Atlas {
         ctx.strokeRect(x - 2, y - 2, 4, 4);
         ctx.font = '11px sans-serif';
         ctx.fillStyle = '#f5f2da';
-        ctx.fillText(s.name, x + 6, y - 5);
+        if (!['meridian', 'flats', 'plan'].includes(s.id) || this.zoom > 2)
+          ctx.fillText(s.name, x + 6, y - 5);
       }
     const p = this.controller.camera.position;
     ctx.save();

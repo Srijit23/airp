@@ -1,6 +1,7 @@
 import { MeshStandardMaterial } from 'three';
 
 // Packed surface textures carry tangent normal XY in RG and roughness in B.
+import { fadeShadowBounds } from '../environment/shadow-fade.js';
 export async function terrainMaterial(assets) {
   const ids = [
     'meadow',
@@ -22,6 +23,7 @@ export async function terrainMaterial(assets) {
   const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
   const grid = { value: 0 };
   material.onBeforeCompile = (shader) => {
+    fadeShadowBounds(shader);
     const names = [
       'meadowMap',
       'stoneMap',

@@ -5,6 +5,7 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
+import { RoadLayer } from '../roads/layer.js';
 import { manifest } from '../data/assets.js';
 import { presets, stations } from '../data/world.js';
 import { AssetManager } from './assets.js';
@@ -51,14 +52,17 @@ export class Engine {
       this.terrain.material,
       this.fail,
     );
+    this.roads = await RoadLayer.create(this.scene, this.assets, this.fail);
     this.controls = new InspectionCamera(
       this.camera,
       this.canvas,
       this.streamer,
       () => this.ui?.refresh(),
     );
+    this.controls.streetSurface = (x, z, base) =>
+      this.roads.surfaceHeight(x, z, base);
     this.quality('medium');
-    this.controls.teleport(stations[0]);
+    this.controls.teleport(stations.find((s) => s.id === 'meridian'));
     this.ui = new InspectionPanel(this);
     this.frames = 0;
     this.period = 0;
@@ -89,7 +93,12 @@ export class Engine {
     try {
       if (!this.waitForTerrain) this.controls.update(Math.min(elapsed, 0.06));
       this.streamer.update(this.camera.position, this.preset);
-      if (this.waitForTerrain && this.streamer.covered) {
+      this.roads.update(this.camera.position, this.streamer);
+      if (
+        this.waitForTerrain &&
+        this.streamer.covered &&
+        this.roads.nearReady
+      ) {
         this.waitForTerrain = false;
         document.querySelector('#curtain').hidden = true;
         this.controls.update(0);
@@ -107,7 +116,7 @@ export class Engine {
       }
       this.atmosphere.follow(
         this.camera.position,
-        this.streamer.loads + this.streamer.unloads,
+        this.streamer.loads + this.streamer.unloads + this.roads.revision,
       );
       this.renderer.render(this.scene, this.camera);
       this.frames++;
@@ -139,6 +148,7 @@ export class Engine {
     this.ui?.dispose();
     this.controls?.dispose();
     this.streamer?.dispose();
+    this.roads?.dispose();
     this.atmosphere.dispose();
     this.terrain?.dispose();
     this.renderer.dispose();

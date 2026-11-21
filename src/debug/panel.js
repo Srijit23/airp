@@ -1,5 +1,7 @@
 import { stations, district } from '../data/world.js';
 import { Atlas } from './atlas.js';
+import { PlanOverlay, layers } from './city-plan.js';
+import { zoneAt, zones } from '../roads/parcels.js';
 import { icons } from './icons.js';
 
 const $ = (id) => document.getElementById(id);
@@ -8,10 +10,26 @@ export class InspectionPanel {
     this.engine = engine;
     const c = engine.controls;
     icons();
+    this.overlay = new PlanOverlay(engine.scene);
     this.atlas = new Atlas(c, (station) => {
       this.close();
       engine.travel(station);
     });
+    this.atlas.overlay = this.overlay;
+    for (const [key, [name, color]] of Object.entries(layers)) {
+      const label = document.createElement('label'),
+        input = document.createElement('input'),
+        swatch = document.createElement('i');
+      input.type = 'checkbox';
+      input.id = 'layer-' + key;
+      swatch.style.background = color;
+      label.append(input, swatch, document.createTextNode(name));
+      $('city-layers').append(label);
+      input.onchange = () => {
+        this.overlay.toggle(key, input.checked);
+        this.atlas.drawFull();
+      };
+    }
     this.dialog = $('panel');
     for (const t of ['atlas', 'settings', 'help'])
       $(t + '-btn').onclick = () => this.open(t);
@@ -91,7 +109,7 @@ export class InspectionPanel {
     e.controls.suspend(true);
     for (const t of ['atlas', 'settings', 'help']) $(t).hidden = t !== tab;
     $('panel-title').textContent = {
-      atlas: 'Terrain atlas',
+      atlas: 'City atlas',
       settings: 'Explorer settings',
       help: 'Camera controls',
     }[tab];
@@ -134,7 +152,7 @@ export class InspectionPanel {
     $('site').textContent =
       Math.hypot(p.x - nearest.x, p.z - nearest.z) < 210
         ? nearest.name
-        : 'Open terrain';
+        : zones[zoneAt(p)].name;
     $('alt').textContent = Math.round(p.y);
     $('speed').textContent = Math.round(c.travelSpeed);
     const bearing = ((((-c.yaw * 180) / Math.PI) % 360) + 360) % 360;
@@ -165,6 +183,7 @@ export class InspectionPanel {
           ' detail chunks    ' +
           s.sectors.size +
           ' horizon sectors',
+        e.roads.meshes.size + ' road batches',
         e.assets.entries.size +
           ' assets    ' +
           r.memory.geometries +
@@ -176,6 +195,7 @@ export class InspectionPanel {
     }
   }
   dispose() {
+    this.overlay.dispose();
     window.removeEventListener('keydown', this.onKey);
     if (this.dialog.open) this.close();
   }

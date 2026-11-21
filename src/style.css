@@ -693,3 +693,34 @@ body.locked .controls > span:nth-child(2) {
     margin-left: auto;
   }
 }
+#plan-tools {
+  margin: 0 0 12px;
+  border-bottom: 1px solid #70877960;
+  padding: 0 0 10px;
+}
+#plan-tools summary {
+  cursor: pointer;
+  color: #dcebc5;
+  font-size: 13px;
+}
+#city-layers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 11px 0 2px;
+}
+#city-layers label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e1e4da;
+  font-size: 12px;
+  cursor: pointer;
+}
+#city-layers i {
+  width: 11px;
+  height: 3px;
+}
+#city-layers input {
+  accent-color: #cde88e;
+}

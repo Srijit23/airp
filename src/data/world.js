@@ -41,6 +41,54 @@ export const stations = [
   },
 ];
 
+stations.push(
+  {
+    id: 'meridian',
+    name: 'Meridian Junction',
+    x: -167,
+    z: 28,
+    above: 17.5,
+    yaw: -0.56,
+    pitch: -0.245,
+  },
+  {
+    id: 'promenade',
+    name: 'Basin Boulevard',
+    x: -112.1,
+    z: -106,
+    above: 2.1,
+    yaw: 2.9,
+    pitch: -0.035,
+  },
+  {
+    id: 'rotary',
+    name: 'Orchard Circle',
+    x: -240,
+    z: 267,
+    above: 42,
+    yaw: -0.56,
+    pitch: -0.49,
+  },
+  {
+    id: 'heights',
+    name: 'Juniper Heights',
+    x: -548,
+    z: 340,
+    above: 4.6,
+    yaw: 0.14,
+    pitch: -0.1,
+  },
+  {
+    id: 'plan',
+    name: 'City overview',
+    x: -145,
+    z: 139,
+    above: 1260,
+    yaw: 0,
+    pitch: -1.46,
+  },
+);
+
 export const presets = {
   low: { radius: 2, detail: 1, sectors: 2, dpr: 1, fog: 1780, shadow: 0 },
   medium: {

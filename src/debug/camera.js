@@ -117,7 +117,8 @@ export class InspectionCamera {
     return this.mode === 'fly' ? this.speed : clamp(this.speed / 12, 1, 12);
   }
   height(x, z) {
-    return groundHeight(x, z, this.streamer.resolutionAt(x, z));
+    const base = groundHeight(x, z, this.streamer.resolutionAt(x, z));
+    return this.streetSurface ? this.streetSurface(x, z, base) : base;
   }
   orient() {
     this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');

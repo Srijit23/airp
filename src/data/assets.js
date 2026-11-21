@@ -23,3 +23,22 @@ export const manifest = Object.fromEntries(
     }),
   ),
 );
+
+for (const [id, source] of [
+  ['asphalt', 'worn_asphalt'],
+  ['pavers', 'floor_pavement'],
+]) {
+  for (const suffix of ['', '-surface']) {
+    const name = id + suffix;
+    manifest[name] = {
+      id: name,
+      type: 'texture',
+      category: 'roads',
+      tags: [id],
+      url: import.meta.env.BASE_URL + 'assets/roads/' + name + '.webp',
+      source: 'https://polyhaven.com/a/' + source,
+      license: 'CC0-1.0',
+      color: !suffix,
+    };
+  }
+}
