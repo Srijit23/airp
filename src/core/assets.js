@@ -44,7 +44,15 @@ export class AssetManager {
     return {
       value: { instantiate: () => clone(root), animations: gltf.animations },
       dispose: () => {
-        for (const resource of resources) resource.dispose();
+        const bitmaps = new Set();
+        for (const resource of resources) {
+          // These bitmaps come from the tree GLB's private embedded buffer views.
+          // Three releases GPU textures on dispose; the bitmap also owns decoded pixels.
+          if (spec.category === 'tree' && resource.isTexture && resource.image?.close)
+            bitmaps.add(resource.image);
+          resource.dispose();
+        }
+        for (const bitmap of bitmaps) bitmap.close();
       },
     };
   }
