@@ -27,3 +27,19 @@ The [model source ledger](assets/models/SOURCES.md) records the four Kenney kits
 The building import tool reads Kenney's City Kit Suburban 2.0, City Kit Commercial 2.1, City Kit Industrial 2.0 and Nature Kit 2.1 in OBJ format. Pass the parent folder of the extracted kits to `python scripts/import-city-models.py`. It turns the source palette and authored shading into vertex colours and material classes, normalizes frontage to local +Z, and produces indexed GLB libraries with simpler distance meshes. The build unpacks the local libraries into `dist/city/models/` for standard glTF loading.
 
 Poly Haven's [Forest Floor](https://polyhaven.com/a/forest_floor) and [Sand 02](https://polyhaven.com/a/sand_02) are CC0. To regenerate their 512 px local WebP derivatives, run `python scripts/prepare-habitats.py` with Pillow installed. The shipped game reads all models and maps from its own static files.
+
+## Phase 4A showcase trees
+
+Four species use the finished, textured GLBs from [vinish.dev's tree collection](https://vinish.dev/free-3d-models/trees) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The Scots pine uses tevy’s [CC0 model and its authored distance LOD](https://tevy.dev/models/scots-pine). Each output GLB retains its original credit. A [plain-text credit and change notice](public/assets/trees/CREDITS.txt) ships with the application and opens from its Controls panel.
+
+| AIRP tree | Original download | Height at 1× | Near / far triangles |
+| --- | --- | ---: | ---: |
+| Oak | [Oak Tree](https://models.vinish.dev/trees/oak-tree.glb) | 11.91 m | 13,064 / 2,866 |
+| Scots pine | [LOD0](https://tevy.dev/models/scots-pine/v1/lod0.glb) and [LOD1](https://tevy.dev/models/scots-pine/v1/lod1.glb) | 20.90 m | 46,910 / 11,450 |
+| Spruce | [Snowy Spruce](https://models.vinish.dev/trees/snowy-spruce.glb) | 11.19 m | 18,491 / 7,510 |
+| Birch | [Birch Tree](https://models.vinish.dev/trees/birch-tree.glb) | 14.50 m | 9,052 / 3,442 |
+| Umbrella-thorn acacia | [Acacia Tree](https://models.vinish.dev/trees/acacia-tree.glb) | 6.99 m | 7,506 / 2,338 |
+
+AIRP removes the spruce's snow meshes and retains the original branches, alpha-tested leaf or needle sprays, bark normal maps and PBR roughness values. Each file contains both LODs and shares its materials and textures across them. The lower-detail mesh switches at 72–86 m, with an 8 m margin in each direction to prevent flicker. Copies share their geometry through GPU instancing. Streaming releases all five model handles when the camera leaves the clearing.
+
+To reproduce the conversion, place the four vinish.dev files in a directory with their original filenames. Save tevy’s two downloads there as `scots-pine.glb` and `scots-pine-lod1.glb`. From a normal project checkout with `npm ci` installed, run `npm ci --prefix scripts/trees`, then `node scripts/trees/import.mjs /path/to/originals`. The importer records original SHA-256 digests, measured bounds and triangle counts in [the import manifest](src/trees/imported.json). Runtime builds use the checked-in GLBs directly.

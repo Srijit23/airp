@@ -20,23 +20,27 @@
     ]
   },
   "pine": {
-    "sourceFile": "pine-tree",
-    "sha256": "3c700a3eb2d673f4d97fff5f98dbbabc440adff5b6bc1e40528ab35b636762d8",
+    "sourceFile": "scots-pine",
+    "lodSource": {
+      "sourceFile": "scots-pine-lod1",
+      "sha256": "9b6b04bd8c42f94abb5f6553106642eec808439ae2309846583b915c9b1c8d90"
+    },
+    "sha256": "937d65ec30f47b72800e684d9cb1c1b4524bcfbb1bcd65bd4532c1e28dd47f7b",
     "bounds": {
       "min": [
-        -3.835,
-        0,
-        -4.524
+        -4.511,
+        -0.373,
+        -5.692
       ],
       "max": [
-        4.111,
-        15.685,
-        4.185
+        6.345,
+        20.529,
+        5.274
       ]
     },
     "triangles": [
-      32928,
-      14324
+      46910,
+      11450
     ]
   },
   "spruce": {
