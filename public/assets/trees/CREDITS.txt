@@ -1,0 +1,11 @@
+AIRP Tree Model Showcase
+"Oak Tree", "Pine Tree", "Snowy Spruce", "Birch Tree" and "Acacia Tree"
+by vinish.dev, https://vinish.dev/free-3d-models/trees
+Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+AIRP modifications to all five works: welded and quantized mesh data, a
+mesh-simplified second level of detail, Meshopt geometry compression and
+embedded WebP textures. Snow and snow mound meshes were removed from the
+spruce. Source artwork and original credit metadata remain attributed to the
+author. The five originals and their SHA-256 digests are in src/trees/imported.json.
