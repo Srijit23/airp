@@ -1,0 +1,46 @@
+name: Tree showcase verification
+on:
+  push:
+    branches: [phase4a-tree-showcase]
+    paths:
+      - 'src/**'
+      - 'public/assets/trees/**'
+      - 'scripts/*browser-check.js'
+      - 'test/**'
+      - 'package*.json'
+      - '.github/workflows/phase4a-trees.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    name: Chromium / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: world regression
+            script: scripts/browser-check.js
+          - suite: tree showcase
+            script: scripts/tree-browser-check.js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - if: matrix.suite == 'tree showcase'
+        run: npm test
+      - run: npm run build
+      - run: npx playwright-core install --with-deps chromium
+      - run: node "${{ matrix.script }}"
+        env:
+          AIRP_SOFTWARE_GL: '1'
+      - if: always() && matrix.suite == 'tree showcase'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tree-showcase-screenshots
+          path: test-results/trees/*.jpg
+          if-no-files-found: warn

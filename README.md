@@ -4,6 +4,14 @@
 
 ![Production views of Kestrel Basin, Silverpine Forest and Saltwood Strand](docs/phase3/world-survey.jpg)
 
+### Phase 4A tree showcase
+
+Press **M**, choose **Tree Model Showcase**, and press **G** to inspect the bark and branches at eye level. The clearing above Juniper Heights has three examples each of oak, pine, spruce, birch and umbrella-thorn acacia. Fly up and back to compare the crowns and their distance models.
+
+[In-game screenshots](docs/trees) · [Model credits, dimensions and triangle counts](ASSETS.md#phase-4a-showcase-trees)
+
+Run `npm test` for asset and placement checks. With Chromium installed, `npm run test:trees` exercises the production atlas, camera modes, both LODs and unloading. It writes the five species portraits and an aerial view to `test-results/trees/`.
+
 ### Phase 3 environment
 
 | World feature | Shipped coverage |

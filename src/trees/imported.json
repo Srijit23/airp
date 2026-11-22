@@ -1,0 +1,106 @@
+{
+  "oak": {
+    "sourceFile": "oak-tree",
+    "sha256": "bb1280e5d6fcbb8f77cb9ca437c4b5ca1443b39395129e3b41255eea34952adc",
+    "bounds": {
+      "min": [
+        -6.108,
+        0,
+        -5.035
+      ],
+      "max": [
+        6.681,
+        11.914,
+        6.443
+      ]
+    },
+    "triangles": [
+      13064,
+      2866
+    ]
+  },
+  "pine": {
+    "sourceFile": "scots-pine",
+    "lodSource": {
+      "sourceFile": "scots-pine-lod1",
+      "sha256": "9b6b04bd8c42f94abb5f6553106642eec808439ae2309846583b915c9b1c8d90"
+    },
+    "sha256": "937d65ec30f47b72800e684d9cb1c1b4524bcfbb1bcd65bd4532c1e28dd47f7b",
+    "bounds": {
+      "min": [
+        -4.511,
+        -0.373,
+        -5.692
+      ],
+      "max": [
+        6.345,
+        20.529,
+        5.274
+      ]
+    },
+    "triangles": [
+      46910,
+      11450
+    ]
+  },
+  "spruce": {
+    "sourceFile": "snowy-spruce",
+    "sha256": "cb773822865a0753fe516565d0e07aba1a8f2074940d378cd52af9018b2106d8",
+    "bounds": {
+      "min": [
+        -3.376,
+        0,
+        -3.297
+      ],
+      "max": [
+        3.477,
+        11.191,
+        3.294
+      ]
+    },
+    "triangles": [
+      18491,
+      7510
+    ]
+  },
+  "birch": {
+    "sourceFile": "birch-tree",
+    "sha256": "ba0ffad2ec4dd56f657a8302f47c274fde675f0695d6f5ca61f1374fc564a1ce",
+    "bounds": {
+      "min": [
+        -3.653,
+        0,
+        -4.584
+      ],
+      "max": [
+        3.943,
+        14.5,
+        4.375
+      ]
+    },
+    "triangles": [
+      9052,
+      3442
+    ]
+  },
+  "acacia": {
+    "sourceFile": "acacia-tree",
+    "sha256": "322eec6c76b6e3bf9524383dc5984dbe213c6c13c03ad1a9b79c9017f60f36e7",
+    "bounds": {
+      "min": [
+        -6.307,
+        0,
+        -6.842
+      ],
+      "max": [
+        7.334,
+        6.988,
+        6.166
+      ]
+    },
+    "triangles": [
+      7506,
+      2338
+    ]
+  }
+}

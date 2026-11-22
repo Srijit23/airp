@@ -21,6 +21,10 @@ export class AssetManager {
     }
     if (spec.type !== 'gltf')
       throw Error('Unsupported asset type: ' + spec.type);
+    if (spec.meshopt) {
+      const { MeshoptDecoder } = await import('three/addons/libs/meshopt_decoder.module.js');
+      this.models.setMeshoptDecoder(MeshoptDecoder);
+    }
     const gltf = await this.models.loadAsync(spec.url),
       resources = new Set();
     const root = gltf.scene;
@@ -40,7 +44,15 @@ export class AssetManager {
     return {
       value: { instantiate: () => clone(root), animations: gltf.animations },
       dispose: () => {
-        for (const resource of resources) resource.dispose();
+        const bitmaps = new Set();
+        for (const resource of resources) {
+          // These bitmaps come from the tree GLB's private embedded buffer views.
+          // Three releases GPU textures on dispose; the bitmap also owns decoded pixels.
+          if (spec.category === 'tree' && resource.isTexture && resource.image?.close)
+            bitmaps.add(resource.image);
+          resource.dispose();
+        }
+        for (const bitmap of bitmaps) bitmap.close();
       },
     };
   }

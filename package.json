@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test test/*.test.js",
+    "test:trees": "npm run build && node scripts/tree-browser-check.js",
     "test:browser": "npm run build && node scripts/browser-check.js"
   },
   "dependencies": {
