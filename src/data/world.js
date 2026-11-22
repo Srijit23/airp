@@ -1,3 +1,4 @@
+import { showcaseStation } from '../trees/showcase-plan.js';
 // Right-handed metres. +Y is up, north is -Z. The survey and future map share an origin.
 export const TILE = 256;
 export const SECTOR = 4;
@@ -90,6 +91,7 @@ stations.push(
 );
 
 stations.push(
+  showcaseStation,
   {id:'villa',name:'Villa Court',x:-457,z:286,above:6.2,yaw:.50,pitch:-.20},
   {id:'alder',name:'Alder Vale',x:151,z:1576,above:3,yaw:-1.52,pitch:.025},
   {id:'harbor',name:'Port Mariner',x:-247,z:2900,above:3.2,yaw:3.1,pitch:.02},
