@@ -57,6 +57,7 @@ const norm = (x, z) => {
   const d = Math.hypot(x, z);
   return [x / d, z / d];
 };
+let regionalStreet = false;
 function street(name, kind, ids) {
   ids = ids.map((id) => nodes.get(id));
   for (let i = 0; i < ids.length - 1; i++) {
@@ -67,7 +68,7 @@ function street(name, kind, ids) {
     const da = norm(b.x - prev.x, b.z - prev.z),
       db = norm(next.x - a.x, next.z - a.z);
     roads.push({
-      id: 'kb/' + a.id + '-' + b.id,
+      id: (regionalStreet ? 'region/' : 'kb/') + a.id + '-' + b.id,
       name,
       kind,
       a: a.id,
@@ -208,3 +209,27 @@ street('South Pass Highway', 'highway', [
 street('Meadow Approach', 'suburban', ['southW', 'parkS', 'parkE', cell(8, 4)]);
 export const rotaryId = cell(5, 2);
 export const gatewayId = 'gate';
+
+// Southern districts use world coordinates. The existing survey transform remains local to Kestrel.
+regionalStreet = true;
+const regionalNodes = {
+  orchardPass:[35,1060], alderNorth:[18,1560], alderEast:[274,1595],
+  alderSouth:[246,1820], alderWest:[-38,1800], summitJct:[-510,1710],
+  saltBend:[450,2160], uplandPass:[-657,2180], coastCut:[-640,2560],
+  portWest:[-512,2840], portNorth:[-262,2790], portEast:[-20,2798],
+  portQuay:[29,3030], portMarket:[-238,3055], portBeach:[-488,3070],
+  pierNorth:[224,2808], pierSouth:[249,3035],strandW:[-458,3223],
+  strandTurn:[-206,3248],strandC:[34,3330],strandE:[342,3412]
+};
+for(const [id,[x,z]] of Object.entries(regionalNodes))nodes.set(id,{id,x,z,arms:[]});
+street('South Pass Highway','highway',['gate','summitJct','uplandPass','coastCut','portWest']);
+street('Old Orchard Road','suburban',['parkS','orchardPass','alderNorth','alderWest']);
+street('Alder Avenue','arterial',['summitJct','alderWest','alderSouth']);
+street('Juniper School Road','residential',['alderNorth','alderEast','alderSouth']);
+street('Coast Road','arterial',['portWest','portNorth','portEast','pierNorth','pierSouth']);
+street('Esplanade','city',['pierSouth','portQuay','portMarket','portBeach','portWest']);
+street('Mariner Street','city',['portNorth','portMarket']);
+street('Chandlery Lane','service',['portEast','portQuay']);
+street('Saltwood Parkway','suburban',['alderSouth','saltBend','portEast']);
+street('Saltwood Beach Drive','city',['portBeach','strandW','strandTurn','strandC','strandE','pierSouth']);
+street('Lighthouse Approach','residential',['portQuay','strandC']);

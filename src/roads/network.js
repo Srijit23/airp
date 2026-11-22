@@ -10,9 +10,11 @@ export function grade(x, z) {
   // Vertical curves are shallow piecewise planes; their hinges coincide with tile boundaries.
   return (
     57 +
-    0.0055 * z +
+    0.0055 * Math.min(z,1024) -
+    0.039 * Math.max(0,Math.min(z,3072)-1024) -
+    0.018 * Math.max(0,Math.min(z,3584)-3072) +
     0.0015 * x +
-    0.041 * Math.max(0, z - 256) +
+    0.041 * Math.max(0, Math.min(z,1024) - 256) +
     0.035 * Math.max(0, -z - 256) +
     0.053 * Math.max(0, -x - 512) +
     0.036 * Math.max(0, x)
@@ -81,11 +83,11 @@ export function along(road, s) {
 for (const n of nodes.values()) {
   const largest = Math.max(...n.arms.map((a) => a.road.section.outer));
   n.radius =
-    n.id === gatewayId
+    n.arms.length === 1
       ? 0
       : n.id === rotaryId
         ? 31
-        : n.arms.length === 2
+        : (n.arms.length === 2 || n.id === 'parkS')
           ? Math.max(9, largest + 3)
           : largest + 8;
   for (const a of n.arms) {

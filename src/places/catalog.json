@@ -1,0 +1,570 @@
+{
+  "homes_a": {
+    "kit": "homes",
+    "size": [
+      1.3,
+      0.833541,
+      1.028138
+    ]
+  },
+  "homes_b": {
+    "kit": "homes",
+    "size": [
+      1.828,
+      1.1375,
+      1.14
+    ]
+  },
+  "homes_c": {
+    "kit": "homes",
+    "size": [
+      1.28638,
+      1.033541,
+      1.028138
+    ]
+  },
+  "homes_d": {
+    "kit": "homes",
+    "size": [
+      1.75638,
+      1.2375,
+      1.028
+    ]
+  },
+  "homes_e": {
+    "kit": "homes",
+    "size": [
+      1.3,
+      1.1375,
+      1.028
+    ]
+  },
+  "homes_f": {
+    "kit": "homes",
+    "size": [
+      1.428,
+      1.1375,
+      1.405891
+    ]
+  },
+  "homes_g": {
+    "kit": "homes",
+    "size": [
+      1.45,
+      0.76821,
+      1.178
+    ]
+  },
+  "homes_h": {
+    "kit": "homes",
+    "size": [
+      1.3,
+      0.7375,
+      0.916
+    ]
+  },
+  "homes_i": {
+    "kit": "homes",
+    "size": [
+      1.28638,
+      0.7375,
+      1.028
+    ]
+  },
+  "homes_j": {
+    "kit": "homes",
+    "size": [
+      1.37,
+      1.0375,
+      0.916
+    ]
+  },
+  "homes_k": {
+    "kit": "homes",
+    "size": [
+      0.920938,
+      1.149596,
+      1.02
+    ]
+  },
+  "homes_l": {
+    "kit": "homes",
+    "size": [
+      1.033588,
+      1.049193,
+      1.02
+    ]
+  },
+  "homes_m": {
+    "kit": "homes",
+    "size": [
+      1.428,
+      0.7375,
+      1.428
+    ]
+  },
+  "homes_n": {
+    "kit": "homes",
+    "size": [
+      1.784272,
+      1.1375,
+      1.377891
+    ]
+  },
+  "homes_o": {
+    "kit": "homes",
+    "size": [
+      1.27,
+      1.1375,
+      1.028
+    ]
+  },
+  "homes_p": {
+    "kit": "homes",
+    "size": [
+      1.24,
+      0.918,
+      0.99
+    ]
+  },
+  "homes_q": {
+    "kit": "homes",
+    "size": [
+      1.24,
+      0.918,
+      0.885588
+    ]
+  },
+  "homes_r": {
+    "kit": "homes",
+    "size": [
+      1.028,
+      1.141143,
+      1.02
+    ]
+  },
+  "homes_s": {
+    "kit": "homes",
+    "size": [
+      1.406029,
+      1.1375,
+      1.08638
+    ]
+  },
+  "homes_t": {
+    "kit": "homes",
+    "size": [
+      1.313588,
+      1.156331,
+      1.40638
+    ]
+  },
+  "homes_u": {
+    "kit": "homes",
+    "size": [
+      1.428,
+      1.1375,
+      1.086935
+    ]
+  },
+  "works_a": {
+    "kit": "works",
+    "size": [
+      2.083589,
+      1.47,
+      1.242
+    ]
+  },
+  "works_b": {
+    "kit": "works",
+    "size": [
+      2.083588,
+      1.47,
+      1.262
+    ]
+  },
+  "works_c": {
+    "kit": "works",
+    "size": [
+      1.875935,
+      1.25,
+      2.108021
+    ]
+  },
+  "works_d": {
+    "kit": "works",
+    "size": [
+      0.883588,
+      1.414552,
+      1.42
+    ]
+  },
+  "works_e": {
+    "kit": "works",
+    "size": [
+      1.683588,
+      1.65,
+      1.29
+    ]
+  },
+  "works_f": {
+    "kit": "works",
+    "size": [
+      1.79,
+      1.925,
+      1.28
+    ]
+  },
+  "works_g": {
+    "kit": "works",
+    "size": [
+      1.678138,
+      1.28,
+      1.283588
+    ]
+  },
+  "works_h": {
+    "kit": "works",
+    "size": [
+      1.321726,
+      0.733541,
+      1.31
+    ]
+  },
+  "works_i": {
+    "kit": "works",
+    "size": [
+      1.028138,
+      0.733541,
+      1.3
+    ]
+  },
+  "works_j": {
+    "kit": "works",
+    "size": [
+      1.026622,
+      0.861146,
+      1.3
+    ]
+  },
+  "works_k": {
+    "kit": "works",
+    "size": [
+      1.302859,
+      0.772741,
+      0.913588
+    ]
+  },
+  "works_l": {
+    "kit": "works",
+    "size": [
+      2.083588,
+      1.925,
+      1.87
+    ]
+  },
+  "works_m": {
+    "kit": "works",
+    "size": [
+      1.316275,
+      1.519007,
+      1.7
+    ]
+  },
+  "works_n": {
+    "kit": "works",
+    "size": [
+      0.976622,
+      1.904556,
+      1.42
+    ]
+  },
+  "works_o": {
+    "kit": "works",
+    "size": [
+      0.883588,
+      0.918,
+      1.24
+    ]
+  },
+  "works_p": {
+    "kit": "works",
+    "size": [
+      1.683588,
+      0.714552,
+      0.992
+    ]
+  },
+  "works_q": {
+    "kit": "works",
+    "size": [
+      2.14,
+      0.88,
+      1.769892
+    ]
+  },
+  "works_r": {
+    "kit": "works",
+    "size": [
+      2.483588,
+      1.393,
+      1.272
+    ]
+  },
+  "works_s": {
+    "kit": "works",
+    "size": [
+      2.12,
+      0.836791,
+      0.916275
+    ]
+  },
+  "works_t": {
+    "kit": "works",
+    "size": [
+      1.721726,
+      1.014552,
+      1.39
+    ]
+  },
+  "city_a": {
+    "kit": "city",
+    "size": [
+      0.883588,
+      1.293,
+      0.94
+    ]
+  },
+  "city_b": {
+    "kit": "city",
+    "size": [
+      0.97,
+      1.293,
+      0.94
+    ]
+  },
+  "city_c": {
+    "kit": "city",
+    "size": [
+      0.883588,
+      0.893,
+      1.09
+    ]
+  },
+  "city_d": {
+    "kit": "city",
+    "size": [
+      0.84,
+      1.293,
+      0.9
+    ]
+  },
+  "city_e": {
+    "kit": "city",
+    "size": [
+      1.64,
+      0.893,
+      1.007891
+    ]
+  },
+  "city_f": {
+    "kit": "city",
+    "size": [
+      0.84,
+      1.693,
+      1.03
+    ]
+  },
+  "city_g": {
+    "kit": "city",
+    "size": [
+      0.97,
+      1.693,
+      0.922
+    ]
+  },
+  "city_h": {
+    "kit": "city",
+    "size": [
+      0.883588,
+      1.293,
+      1.007891
+    ]
+  },
+  "city_i": {
+    "kit": "city",
+    "size": [
+      1.24,
+      1.68,
+      1.302
+    ]
+  },
+  "city_j": {
+    "kit": "city",
+    "size": [
+      2.083588,
+      1.693,
+      1.34
+    ]
+  },
+  "city_k": {
+    "kit": "city",
+    "size": [
+      2.083588,
+      1.47,
+      0.942
+    ]
+  },
+  "city_l": {
+    "kit": "city",
+    "size": [
+      1.37,
+      2.27,
+      1.402
+    ]
+  },
+  "city_m": {
+    "kit": "city",
+    "size": [
+      1.24,
+      3.15,
+      1.242
+    ]
+  },
+  "city_n": {
+    "kit": "city",
+    "size": [
+      2.32,
+      2.48,
+      1.82
+    ]
+  },
+  "city_skyscraper_a": {
+    "kit": "city",
+    "size": [
+      1.36,
+      2.88,
+      1.36
+    ]
+  },
+  "city_skyscraper_b": {
+    "kit": "city",
+    "size": [
+      1.36,
+      4.48,
+      1.36
+    ]
+  },
+  "city_skyscraper_c": {
+    "kit": "city",
+    "size": [
+      1.28,
+      4.08,
+      1.387891
+    ]
+  },
+  "city_skyscraper_d": {
+    "kit": "city",
+    "size": [
+      1.28,
+      5.469999,
+      1.387891
+    ]
+  },
+  "city_skyscraper_e": {
+    "kit": "city",
+    "size": [
+      1.295,
+      4.08,
+      1.242
+    ]
+  },
+  "garden_tree_palmDetailedTall": {
+    "kit": "garden",
+    "size": [
+      1.034329,
+      1.423467,
+      1.034329
+    ]
+  },
+  "garden_plant_bushDetailed": {
+    "kit": "garden",
+    "size": [
+      0.602544,
+      0.360411,
+      0.602544
+    ]
+  },
+  "garden_grass_leafsLarge": {
+    "kit": "garden",
+    "size": [
+      0.475897,
+      0.1425,
+      0.487308
+    ]
+  },
+  "garden_rock_largeA": {
+    "kit": "garden",
+    "size": [
+      0.784907,
+      0.259776,
+      1.015461
+    ]
+  },
+  "garden_plant_flatTall": {
+    "kit": "garden",
+    "size": [
+      0.271656,
+      0.284309,
+      0.271656
+    ]
+  },
+  "landmarks_court_villa": {
+    "kit": "landmarks",
+    "size": [
+      13.91,
+      7.5,
+      9.45
+    ]
+  },
+  "landmarks_palm_house": {
+    "kit": "landmarks",
+    "size": [
+      14.66,
+      7.5,
+      9.45
+    ]
+  },
+  "landmarks_terrace_house": {
+    "kit": "landmarks",
+    "size": [
+      14.11,
+      7.5,
+      9.45
+    ]
+  },
+  "landmarks_medical": {
+    "kit": "landmarks",
+    "size": [
+      23.160000000000004,
+      16.97,
+      15.62
+    ]
+  },
+  "landmarks_school": {
+    "kit": "landmarks",
+    "size": [
+      23.160000000000004,
+      7.26,
+      15.62
+    ]
+  },
+  "landmarks_assembly": {
+    "kit": "landmarks",
+    "size": [
+      23.160000000000004,
+      10.710000000000003,
+      15.62
+    ]
+  }
+}

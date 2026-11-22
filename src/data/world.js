@@ -45,11 +45,11 @@ stations.push(
   {
     id: 'meridian',
     name: 'Meridian Junction',
-    x: -167,
-    z: 28,
-    above: 17.5,
-    yaw: -0.56,
-    pitch: -0.245,
+    x: -151.2,
+    z: 45.3,
+    above: 11.8,
+    yaw: -.29,
+    pitch: -.075,
   },
   {
     id: 'promenade',
@@ -72,11 +72,11 @@ stations.push(
   {
     id: 'heights',
     name: 'Juniper Heights',
-    x: -548,
-    z: 340,
-    above: 4.6,
-    yaw: 0.14,
-    pitch: -0.1,
+    x: -475.3,
+    z: 243.2,
+    above: 3.1,
+    yaw: 2.30,
+    pitch: -.015,
   },
   {
     id: 'plan',
@@ -89,6 +89,14 @@ stations.push(
   },
 );
 
+stations.push(
+  {id:'villa',name:'Villa Court',x:-457,z:286,above:6.2,yaw:.50,pitch:-.20},
+  {id:'alder',name:'Alder Vale',x:151,z:1576,above:3,yaw:-1.52,pitch:.025},
+  {id:'harbor',name:'Port Mariner',x:-247,z:2900,above:3.2,yaw:3.1,pitch:.02},
+  {id:'strand',name:'Saltwood Strand',x:135,z:3528,above:4.1,yaw:1.67,pitch:-.065},
+  {id:'forest',name:'Silverpine Forest',x:-1815,z:-1533,above:2.05,yaw:.58,pitch:.045},
+  {id:'linden',name:'Linden Ward',x:-151,z:368,above:2.2,yaw:2.52,pitch:.02},
+);
 export const presets = {
   low: { radius: 2, detail: 1, sectors: 2, dpr: 1, fog: 1780, shadow: 0 },
   medium: {

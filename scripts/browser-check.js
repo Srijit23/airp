@@ -34,10 +34,10 @@ try {
     args,
   });
   const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
-  page.setDefaultTimeout(60000);
+  page.setDefaultTimeout(120000);
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
+    if (m.type() === 'error') {errors.push(m.text());console.error(m.text().slice(0,1200));}
   });
   page.on('response', (r) => {
     if (r.status() >= 400) errors.push(r.status() + ' ' + r.url());
@@ -134,7 +134,7 @@ try {
     'graph',
     'grade',
     'zone',
-    'parcel',
+    'parcel','building','bounds','habitat',
   ]) {
     await page.locator('#layer-' + name).check();
     if (!['zone', 'parcel'].includes(name))
@@ -168,11 +168,13 @@ try {
   for (const [station, file] of [
     ['Orchard Circle', 'circle'],
     ['Juniper Heights', 'hill'],
-    ['City overview', 'network'],
+    ['City overview','network'],['Linden Ward','residential'],['Villa Court','villa'],
+    ['Alder Vale','alder'],['Silverpine Forest','forest'],['Saltwood Strand','coast'],['Port Mariner','harbor'],
   ]) {
     await page.locator('#atlas-btn').click();
     await page.locator('#stations').getByText(station).click();
     await ready();
+    console.log('Inspecting '+station);
     await page.screenshot({ path: out + '/' + file + '.jpg', quality: 91 });
   }
   await page.setViewportSize({ width: 600, height: 380 });
@@ -197,8 +199,8 @@ try {
     const points = [
       [382, 688],
       [-950, -940],
-      [940, -950],
-      [-940, 950],
+      [-1815,-1533],
+      [-247,2900],
       [382, 688],
     ];
     const startLoads = s.loads;
@@ -217,6 +219,8 @@ try {
         e.renderer.info.memory.geometries,
         e.renderer.info.memory.textures,
         e.roads.meshes.size,
+        new Set([...e.places.models.values()].map(m=>m.geometry)).size,
+        [...e.assets.entries.keys()].filter(id=>e.assets.manifest[id].type==='texture').length,
       ]);
     }
     e.controls.setMode('ground');
@@ -256,7 +260,7 @@ try {
       low,
       worst,
       renderer,
-      loads: s.loads - startLoads,
+      loads: s.loads - startLoads,cellCache:e.places.cells.size,
       unloads: s.unloads,
     };
   });
@@ -272,9 +276,10 @@ try {
   assert.deepEqual(route.snapshots[4], route.snapshots.at(-1));
   assert.ok(
     route.snapshots.every(
-      (p) => p[2] <= p[0] + p[1] + p[4] + 2 && p[3] === route.snapshots[0][3],
+      (p) => p[2] <= p[0]+p[1]+p[4]+p[5]+2 && p[3] <= p[6]+6,
     ),
   );
+  assert.ok(route.cellCache<=140);
   assert.ok(route.snapshots.every((p) => p[0] === 49 && p[1] === 25));
   await page.evaluate(() => {
     airp.controls.setMode('fly');
@@ -296,6 +301,12 @@ try {
         airp.controls.height(airp.camera.position.x, airp.camera.position.z),
     ),
   );
+  const dive=await page.evaluate(async()=>{
+    const e=airp;e.controls.setMode('fly');e.travel({x:102,z:3890,above:2,yaw:0,pitch:0});
+    await new Promise(resolve=>{const poll=()=>!e.waitForTerrain && e.streamer.settled?resolve():requestAnimationFrame(poll);poll();});
+    return {wet:e.water.underwater,visible:e.water.mesh.visible,y:e.camera.position.y};
+  });
+  assert.ok(dive.wet && dive.visible && dive.y<0);
   assert.deepEqual(errors, []);
   console.log(
     'PASS: production and development WebGL2, inputs, atlas, graphics presets, seams, round-trip resource counts.',

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { clamp, district } from '../data/world.js';
+import { clamp, plannedHalfSize } from '../data/world.js';
 import { groundHeight } from '../world/queries.js';
 
 export class InspectionCamera {
@@ -102,6 +102,10 @@ export class InspectionCamera {
   }
   teleport(station) {
     this.keys.clear();
+    if(this.mode==='ground'){
+      const b=this.obstacle?.(station.x,station.z);
+      if(b)station={...station,x:b.entrance.x,z:b.entrance.z};
+    }
     this.yaw = station.yaw;
     this.pitch = station.pitch;
     this.camera.position.set(
@@ -127,6 +131,8 @@ export class InspectionCamera {
     this.mode = mode;
     this.keys.clear();
     if (mode === 'ground') {
+      const b=this.obstacle?.(this.camera.position.x,this.camera.position.z);
+      if(b){this.camera.position.x=b.entrance.x;this.camera.position.z=b.entrance.z;}
       this.camera.position.y =
         this.height(this.camera.position.x, this.camera.position.z) + 1.72;
       this.pitch = clamp(this.pitch, -0.5, 0.5);
@@ -157,12 +163,17 @@ export class InspectionCamera {
         fly ? Math.sin(y) * f + up : 0,
         -Math.cos(this.yaw) * Math.cos(y) * f - Math.sin(this.yaw) * r,
       );
-      const speed = this.travelSpeed;
+      const speed = this.travelSpeed, oldX=p.x,oldZ=p.z;
       p.addScaledVector(
         d.normalize(),
         speed * (k.has('ShiftLeft') || k.has('ShiftRight') ? 3.5 : 1) * dt,
       );
-      const edge = district.halfSize - 0.01;
+      if(!fly && this.obstacle?.(p.x,p.z)){
+        if(!this.obstacle(oldX,p.z))p.x=oldX;
+        else if(!this.obstacle(p.x,oldZ))p.z=oldZ;
+        else {p.x=oldX;p.z=oldZ;}
+      }
+      const edge = plannedHalfSize - 0.01;
       p.x = clamp(p.x, -edge, edge);
       p.z = clamp(p.z, -edge, edge);
     }

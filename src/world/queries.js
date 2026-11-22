@@ -1,4 +1,5 @@
-import { district, NEAR, TILE, tileAt, stableId } from '../data/world.js';
+import {regionAt} from './regions.js';
+import { plannedHalfSize,district, NEAR, TILE, tileAt, stableId } from '../data/world.js';
 import { elevation, normalAt } from '../terrain/field.js';
 import { layout, triangleAt } from '../terrain/topology.js';
 
@@ -21,6 +22,6 @@ export function surfaceAt(x, z) {
     district:
       Math.max(Math.abs(x), Math.abs(z)) < district.halfSize
         ? district.id
-        : null,
+        : Math.max(Math.abs(x),Math.abs(z))<=plannedHalfSize ? regionAt(x,z) : null,
   };
 }
