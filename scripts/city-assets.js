@@ -1,4 +1,6 @@
-import { gzipSync } from 'node:zlib';
+import {readFileSync} from 'node:fs';
+import {buildings} from '../src/places/records.js';
+import { gzipSync,gunzipSync } from 'node:zlib';
 import { parcels, greenReservations } from '../src/roads/parcels.js';
 import { compileCity } from '../src/roads/build.js';
 
@@ -42,6 +44,9 @@ export function cityAssets() {
     ),
   );
   files.set('city/index.json', Buffer.from(JSON.stringify(manifest)));
+  for(const kit of ['homes','city','works','garden','canopy'])
+    files.set('city/models/'+kit+'.glb',gunzipSync(readFileSync(new URL('../assets/models/'+kit+'.glb.gz',import.meta.url))));
+  files.set('city/buildings.json',Buffer.from(JSON.stringify({version:1,units:'metres',buildings:buildings.map(({parcel,...b})=>({...b,parcelId:parcel.id}))})));
   return files;
 }
 export function cityPlugin() {

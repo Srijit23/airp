@@ -1,3 +1,5 @@
+import {buildings} from '../places/records.js';
+import {shoreline} from '../world/regions.js';
 import {
   BufferGeometry,
   Float32BufferAttribute,
@@ -16,6 +18,7 @@ import { stationsBetween } from '../roads/navigation.js';
 import { elevation } from '../terrain/field.js';
 
 export const layers = {
+  building:['Building footprints','#f4ce8f'],bounds:['Collision boxes','#91d3ec'],habitat:['Vegetation regions','#a1c977'],
   center: ['Centerlines', '#f7cf6a'],
   edges: ['Road boundaries', '#b4e9f0'],
   junction: ['Junctions', '#f79672'],
@@ -26,6 +29,15 @@ export const layers = {
 };
 const loop = (points) => [...points, points[0]];
 function paths(key) {
+  if(key==='building')return buildings.map(b=>({points:loop(b.corners.map(c=>({...c,y:b.position.y+.14})))}));
+  if(key==='bounds')return buildings.flatMap(b=>{
+    const roof=b.corners.map(c=>({...c,y:b.position.y+b.height}));
+    return [{points:loop(roof)},...b.corners.map((c,i)=>({points:[{...c,y:b.position.y},roof[i]]}))];
+  });
+  if(key==='habitat')return [
+    {points:[{x:-1420,z:4864},{x:-1420,z:-1240},{x:4864,z:-1240}]},
+    {points:Array.from({length:100},(_,i)=>{const x=-4864+i*9728/99;return {x,z:shoreline(x)-135};})}
+  ];
   if (key === 'zone')
     return [
       ...zoneAreas.map((z) => ({
@@ -129,7 +141,7 @@ export class PlanOverlay {
             for (const t of [j / n, (j + 1) / n]) {
               const x = a.x + t * (b.x - a.x),
                 z = a.z + t * (b.z - a.z);
-              vertices.push(x, elevation(x, z) + 0.38, z);
+              vertices.push(x,a.y===undefined?elevation(x,z)+.38:a.y+(b.y-a.y)*t,z);
             }
         }
       }

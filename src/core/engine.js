@@ -1,3 +1,7 @@
+import {PlaceLayer} from '../places/layer.js';
+import {SouthSound} from '../environment/water.js';
+import {buildingAt} from '../places/records.js';
+import {promenadeHeight} from '../places/promenade.js';
 import {
   ACESFilmicToneMapping,
   PCFSoftShadowMap,
@@ -53,14 +57,17 @@ export class Engine {
       this.fail,
     );
     this.roads = await RoadLayer.create(this.scene, this.assets, this.fail);
+    this.places=await PlaceLayer.create(this.scene,this.assets);
+    this.water=new SouthSound(this.scene);
     this.controls = new InspectionCamera(
       this.camera,
       this.canvas,
       this.streamer,
       () => this.ui?.refresh(),
     );
+    this.controls.obstacle=(x,z)=>buildingAt(x,z,.25);
     this.controls.streetSurface = (x, z, base) =>
-      this.roads.surfaceHeight(x, z, base);
+      Math.max(this.roads.surfaceHeight(x,z,base),promenadeHeight(x,z)??-Infinity);
     this.quality('medium');
     this.controls.teleport(stations.find((s) => s.id === 'meridian'));
     this.ui = new InspectionPanel(this);
@@ -94,6 +101,10 @@ export class Engine {
       if (!this.waitForTerrain) this.controls.update(Math.min(elapsed, 0.06));
       this.streamer.update(this.camera.position, this.preset);
       this.roads.update(this.camera.position, this.streamer);
+      this.places.update(this.camera.position,this.presetName,time/1000);
+      this.water.update(this.camera.position,time/1000,this.preset);
+      this.atmosphere.sky.visible=!this.water.underwater;
+      this.scene.background=this.water.underwater?this.water.wet:null;
       if (
         this.waitForTerrain &&
         this.streamer.covered &&
@@ -116,7 +127,7 @@ export class Engine {
       }
       this.atmosphere.follow(
         this.camera.position,
-        this.streamer.loads + this.streamer.unloads + this.roads.revision,
+        this.streamer.loads + this.streamer.unloads + this.roads.revision+this.places.revision,
       );
       this.renderer.render(this.scene, this.camera);
       this.frames++;
@@ -149,6 +160,7 @@ export class Engine {
     this.controls?.dispose();
     this.streamer?.dispose();
     this.roads?.dispose();
+    this.places?.dispose();this.water?.dispose();
     this.atmosphere.dispose();
     this.terrain?.dispose();
     this.renderer.dispose();

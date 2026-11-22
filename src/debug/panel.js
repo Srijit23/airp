@@ -1,7 +1,8 @@
+import {regionAt} from '../world/regions.js';
 import { stations, district } from '../data/world.js';
 import { Atlas } from './atlas.js';
 import { PlanOverlay, layers } from './city-plan.js';
-import { zoneAt, zones } from '../roads/parcels.js';
+import { zoneAt, zones,zoneAreas,inside } from '../roads/parcels.js';
 import { icons } from './icons.js';
 
 const $ = (id) => document.getElementById(id);
@@ -144,6 +145,7 @@ export class InspectionPanel {
     const e = this.engine,
       c = e.controls,
       p = e.camera.position;
+    $('region-name').textContent=regionAt(p.x,p.z);
     const nearest = stations.reduce((a, s) =>
       Math.hypot(p.x - a.x, p.z - a.z) < Math.hypot(p.x - s.x, p.z - s.z)
         ? a
@@ -152,7 +154,7 @@ export class InspectionPanel {
     $('site').textContent =
       Math.hypot(p.x - nearest.x, p.z - nearest.z) < 210
         ? nearest.name
-        : zones[zoneAt(p)].name;
+        : (zoneAreas.find(a=>a.name&&inside(p,a.points))?.name || (zoneAt(p)==='green'?regionAt(p.x,p.z):zones[zoneAt(p)].name));
     $('alt').textContent = Math.round(p.y);
     $('speed').textContent = Math.round(c.travelSpeed);
     const bearing = ((((-c.yaw * 180) / Math.PI) % 360) + 360) % 360;
@@ -184,6 +186,7 @@ export class InspectionPanel {
           s.sectors.size +
           ' horizon sectors',
         e.roads.meshes.size + ' road batches',
+        e.places.bodies+' buildings    '+e.places.plants+' plants',
         e.assets.entries.size +
           ' assets    ' +
           r.memory.geometries +

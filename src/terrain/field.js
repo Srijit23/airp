@@ -1,3 +1,4 @@
+import {shoreline} from '../world/regions.js';
 import { corridorDistance, grade } from '../roads/network.js';
 import { SEED } from '../data/world.js';
 
@@ -26,7 +27,7 @@ export function smooth(a, b, x) {
 }
 
 // The flat alluvial floor grades into folded escarpments. No per-tile random state.
-export function naturalElevation(x, z) {
+function basinElevation(x, z) {
   const broad = noise(x / 570 + 3.7, z / 570 - 8.1);
   const warp = 165 * (broad - 0.5) + 54 * (noise(x / 218, z / 218) - 0.5);
   const u = x + warp,
@@ -63,6 +64,15 @@ export function naturalElevation(x, z) {
   return mix(relief, floor, terrace);
 }
 
+export function naturalElevation(x,z) {
+  const base=basinElevation(x,z);
+  if(z<=1050)return base;
+  const d=shoreline(x)-z, broad=noise(x/470,z/520);
+  const low=grade(x,z)+(broad-.5)*32+5*noise(x/67,z/89);
+  const plain=mix(base,low,smooth(1050,1650,z)*(1-smooth(650,1650,Math.abs(x))));
+  const beach=d<0?Math.max(-115,d*(.048+.027*broad)):d*(.041+.015*broad)+smooth(22,155,d)*(3*broad+3*noise(x/70,z/80));
+  return mix(beach,plain,smooth(140,440,d));
+}
 export function elevation(x, z) {
   const d = corridorDistance(x, z, 50);
   // The graded bench includes the coarse tile stencil. Every LOD under a street samples

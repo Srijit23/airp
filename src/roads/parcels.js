@@ -1,3 +1,4 @@
+import { plannedHalfSize } from '../data/world.js';
 import {
   roads,
   roadLimits,
@@ -174,6 +175,15 @@ export const zoneAreas = areas.map(([type, uv]) => ({
   type,
   points: uv.map(([u, v]) => site(u, v)),
 }));
+const regionalZones = [
+  ['public','Alder School Grounds',80,1530,167,1675],['residential','Alder Vale',-97,1500,328,1878],
+  ['industrial','East Dock',5,2748,305,2950],['commercial','Port Market',-331,2730,5,3000],
+  ['downtown','Mariner Quarter',-575,2730,-331,3015],['luxury','Esplanade Gardens',-575,3015,-260,3125],
+  ['residential','Saltwood Beach',-260,2950,305,3125],['commercial','Strand Village',-530,3125,-154,3290],
+  ['residential','Strand Village',-154,3125,323,3460],
+];
+for(const [type,name,x0,z0,x1,z1] of regionalZones)
+  zoneAreas.push({type,name,points:[{x:x0,z:z0},{x:x1,z:z0},{x:x1,z:z1},{x:x0,z:z1}]});
 export function inside(p, poly) {
   let hit = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -245,7 +255,7 @@ export function validateParcel(p, neighbors = []) {
   if (
     corners.some(
       (c) =>
-        zoneAt(c) !== zone || Math.max(Math.abs(c.x), Math.abs(c.z)) > 1024,
+        zoneAt(c) !== zone || Math.max(Math.abs(c.x), Math.abs(c.z)) > plannedHalfSize,
     )
   )
     return 'zoning or boundary';
@@ -305,7 +315,7 @@ const priority = {
   highway: 7,
 };
 for (const road of [...roads].sort(
-  (a, b) => priority[a.kind] - priority[b.kind],
+  (a, b) => Number(a.id.startsWith('region/')) - Number(b.id.startsWith('region/')) || priority[a.kind] - priority[b.kind],
 )) {
   if (road.kind === 'highway') continue;
   const [start, end] = roadLimits(road);
@@ -329,7 +339,7 @@ for (const road of [...roads].sort(
       const parcel = {
         id,
         zone,
-        district: rules.name,
+        district: zoneAreas.find(a => a.name && inside(center,a.points))?.name || rules.name,
         center: { ...center, y: grade(center.x, center.z) },
         width,
         depth,
@@ -385,9 +395,10 @@ const programs = {
 };
 const sequence = {};
 for (const p of parcels) {
-  const n = sequence[p.zone] || 0;
+  const key = p.district + p.zone;
+  const n = sequence[key] || 0;
   p.program = programs[p.zone][n % programs[p.zone].length];
-  sequence[p.zone] = n + 1;
+  sequence[key] = n + 1;
 }
 // Reserve distinct off-street parking courts with an entrance across the sidewalk.
 for (const zone of ['industrial', 'public', 'commercial', 'downtown']) {

@@ -9,7 +9,7 @@ export async function terrainMaterial(assets) {
     'silt',
     'meadow-surface',
     'stone-surface',
-    'silt-surface',
+    'silt-surface','place-forest_floor','place-sand_02',
   ];
   const settled = await Promise.allSettled(ids.map((id) => assets.acquire(id)));
   const handles = settled
@@ -30,7 +30,7 @@ export async function terrainMaterial(assets) {
       'siltMap',
       'meadowNS',
       'stoneNS',
-      'siltNS',
+      'siltNS','duffMap','beachMap',
     ];
     names.forEach(
       (name, i) => (shader.uniforms[name] = { value: handles[i].value }),
@@ -48,7 +48,7 @@ export async function terrainMaterial(assets) {
     shader.fragmentShader =
       `
       varying vec3 vGround; varying vec3 vSlope;
-      uniform sampler2D meadowMap,stoneMap,siltMap,meadowNS,stoneNS,siltNS;
+      uniform sampler2D meadowMap,stoneMap,siltMap,meadowNS,stoneNS,siltNS,duffMap,beachMap;
       uniform float showGrid;
       float hash2(vec2 p){
         vec3 q=fract(vec3(p.xyx)*.1031);
@@ -94,6 +94,21 @@ export async function terrainMaterial(assets) {
       stone=mix(stone,vec3(dot(stone,vec3(.26,.56,.18))),.62)*vec3(1.04,.99,.89);
       diffuseColor.rgb=(moss*(1.-rock-dirt)+stone*rock+dust*dirt)
         *mix(.66,1.32,mottling)*mix(.89,1.12,field(p*.155));
+      float woodland=max(1.-smoothstep(-1650.,-1300.,p.x),1.-smoothstep(-1500.,-1120.,p.y));
+      if(woodland>.001 && vGround.y<570.){
+        vec3 litter=texture2D(duffMap,p/3.6+warp*.11).rgb;
+        float under=woodland*(1.-smoothstep(.19,.50,1.-gn.y));
+        diffuseColor.rgb=mix(diffuseColor.rgb,litter*vec3(.97,1.10,.81)*(.90+.21*macro),under*.92);
+      }
+      float strand=3508.+140.*sin(p.x/710.)+50.*sin(p.x/211.)-p.y;
+      float sand=1.-smoothstep(42.,155.,strand+18.*macro);
+      if(sand>.001){
+        float wet=smoothstep(1.4,19.,strand+sin(p.x*.05)*.7);
+        float tone=dot(texture2D(beachMap,p/4.7+warp*.07).rgb,vec3(.26,.58,.16));
+        vec3 beach=mix(vec3(.19,.157,.101),vec3(.64,.53,.35),wet)*(.66+1.10*tone);
+        float rockCoast=smoothstep(.54,.78,field(p*.004+8.))*smoothstep(.035,.25,1.-gn.y);
+        diffuseColor.rgb=mix(diffuseColor.rgb,beach,sand*(1.-rockCoast));
+      }
       vec3 ns=vec3(.5,.5,.91);
       if(detail>0.){
         vec3 surface=texture2D(meadowNS,uv).rgb*(1.-rock-dirt)

@@ -1,8 +1,8 @@
-import { clamp, district, stations } from '../data/world.js';
+import { clamp, plannedHalfSize, stations } from '../data/world.js';
 import { drawStreets } from './city-plan.js';
 import { elevation } from '../terrain/field.js';
 
-const half = district.halfSize,
+const half = plannedHalfSize,
   size = 384;
 function relief() {
   const canvas = document.createElement('canvas');
@@ -26,7 +26,7 @@ function relief() {
           Math.floor((h + Math.max(1, Math.abs(dx), Math.abs(dz))) / 16);
       const base =
         35 + clamp(h / 520, 0, 1) * 42 + light * 38 + (contour ? 29 : 0);
-      img.data.set([base + 5, base + 20, base + 11, 255], (y * size + x) * 4);
+      img.data.set(h < 0 ? [39,78+Math.max(-25,h*.26),92+Math.max(-25,h*.25),255] : [base + 5, base + 20, base + 11, 255], (y * size + x) * 4);
     }
   ctx.putImageData(img, 0, 0);
   return canvas;
@@ -40,7 +40,7 @@ export class Atlas {
     this.full = document.querySelector('#atlas-map');
     this.cx = 0;
     this.cz = 0;
-    this.zoom = 1;
+    this.zoom = 3.4;
     this.travelButtons();
     const c = this.full;
     c.onwheel = (e) => {
@@ -104,7 +104,7 @@ export class Atlas {
     this.cz = clamp(this.cz, -half, half);
   }
   scale(f) {
-    this.zoom = clamp(this.zoom * f, 1, 5);
+    this.zoom = clamp(this.zoom * f, 1, 18);
     this.constrain();
     this.drawFull();
   }
@@ -163,7 +163,7 @@ export class Atlas {
         ctx.strokeRect(x - 2, y - 2, 4, 4);
         ctx.font = '11px sans-serif';
         ctx.fillStyle = '#f5f2da';
-        if (!['meridian', 'flats', 'plan'].includes(s.id) || this.zoom > 2)
+        if (this.zoom > 4 || ['meridian','harbor','alder','forest','strand'].includes(s.id))
           ctx.fillText(s.name, x + 6, y - 5);
       }
     const p = this.controller.camera.position;
