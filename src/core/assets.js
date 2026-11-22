@@ -21,6 +21,10 @@ export class AssetManager {
     }
     if (spec.type !== 'gltf')
       throw Error('Unsupported asset type: ' + spec.type);
+    if (spec.meshopt) {
+      const { MeshoptDecoder } = await import('three/addons/libs/meshopt_decoder.module.js');
+      this.models.setMeshoptDecoder(MeshoptDecoder);
+    }
     const gltf = await this.models.loadAsync(spec.url),
       resources = new Set();
     const root = gltf.scene;

@@ -1,3 +1,4 @@
+import { treeSpecies } from '../trees/species.js';
 const textures = [
   ['meadow', 'rocky_terrain_02'],
   ['stone', 'aerial_rocks_02'],
@@ -47,3 +48,9 @@ for(const id of ['homes','city','works','garden','canopy'])
   manifest[id]={id,type:'gltf',category:'environment',license:id==='canopy'?'MIT':'CC0-1.0',url:import.meta.env.BASE_URL+'city/models/'+id+'.glb'};
 for(const id of ['diff','nor_gl','oak','pine','bark','sand_02','forest_floor'])
   manifest['place-'+id]={id:'place-'+id,type:'texture',category:'environment',color:!['diff','nor_gl'].includes(id),url:import.meta.env.BASE_URL+'assets/places/'+id+'.webp'};
+
+for (const species of treeSpecies) {
+  const id = species.assetId;
+  manifest[id] = { id, type: 'gltf', category: 'tree', meshopt: true,
+    url: import.meta.env.BASE_URL + species.modelPath, source: species.source.url, license: species.source.license };
+}
