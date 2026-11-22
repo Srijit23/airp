@@ -1,10 +1,20 @@
 # AIRP · World Explorer
 
-**Kestrel Basin** is a 4.19 km² browser-playable district. Phase 2 opens above Meridian Junction. Press **G** to walk the streets, or **M** to inspect the city plan and jump to Orchard Circle, Juniper Heights or a district-wide aerial view.
+**AIRP now has a 94.63 km² playable world.** Start on Basin Boulevard in Kestrel Basin, walk through Linden Ward, then follow South Pass Highway through Alder Vale to the coast. Press **G** for eye-level exploration or **M** to jump to a named destination.
 
-![Meridian Junction in the production WebGL2 build](docs/meridian-junction.jpg)
+![Production views of Kestrel Basin, Silverpine Forest and Saltwood Strand](docs/phase3/world-survey.jpg)
 
-[Ground-level boulevard](docs/basin-boulevard.jpg) · [Orchard Circle](docs/orchard-circle.jpg) · [City atlas and parcels](docs/city-atlas.jpg)
+### Phase 3 environment
+
+| World feature | Shipped coverage |
+| --- | --- |
+| Playable footprint | 9,728 × 9,728 m with streamed terrain, collision queries and atlas navigation |
+| Developed area | 443 buildings across 14 named planning districts, including all 183 original building parcels |
+| Architecture | 60 imported Kenney base models and six original designs for villas, a school, a medical building and a civic hall |
+| Streets | 121 connected road segments and 19.54 km of centerline. Regional routes add 9.56 km beyond the Phase 2 network. |
+| Landscape and water | Instanced broadleaf trees, conifers, palms, shrubs and ground plants. The southern coastline has wet sand, animated waves and an accessible boardwalk. Twenty-nine properties have pool basins with independently animated water. |
+
+The built-up areas follow the basin-to-coast corridor. Much of the northern and western terrain is forest or high ground. Buildings have exterior shells, foundations, street-facing access records and ground-camera collision proxies. Specialist city interiors, traffic and characters are future work.
 
 ## Run locally
 
@@ -28,7 +38,7 @@ Open the local URL printed by Vite. To serve the production build locally, run `
 | Switch flight and eye-level inspection | G or Explorer settings |
 | Open the city atlas | M or the minimap. Drag to pan, scroll to zoom, click to relocate. Named survey stations are available below the map. |
 | Inspect frame time, coordinates and residency | F3 or Explorer settings |
-| Inspect streets and building plots | Open the atlas, expand Planning overlays, and choose centerlines, boundaries, junctions, zoning, parcels, connectivity or grading limits. Selections also appear in 3D. |
+| Inspect streets and building plots | Open the atlas, expand Planning overlays, and choose centerlines, boundaries, junctions, zoning, parcels, connectivity grading limits, building footprints, collision boxes or vegetation boundaries. Selections also appear in 3D. |
 | Show chunk borders | Explorer settings → Chunk boundaries |
 | Release the mouse / dismiss a panel | Esc |
 
@@ -36,7 +46,7 @@ The compass and both maps use north as negative Z. Altitude is elevation above t
 
 ## World and rendering
 
-The playable district measures **2,048 × 2,048 m (4.19 km²)**. The intended map envelope is **9,728 × 9,728 m (94.63 km²)**. The camera is constrained to the current district. Scenic terrain continues outside it so the edge stays out of view. The streaming budget depends on the graphics preset and camera position.
+The playable boundary spans 9,728 metres on each axis. The original 2,048 m Kestrel survey retains its coordinate system. Both the near-tile window and the coarse terrain window follow the camera across the world.
 
 | System | Implementation |
 | --- | --- |
@@ -56,6 +66,10 @@ The playable district measures **2,048 × 2,048 m (4.19 km²)**. The intended ma
 Adaptive resolution can lower the render scale under sustained load. The HUD stays at display resolution. Coarse-sector indices under active detail tiles are masked. GPU triangle submission counters include these degenerate triangles. Browser GPU resource counts are available in the overlay.
 
 ## Integration points
+
+- `src/places/` contains the independent placement records, architectural templates, GPU material setup and instanced renderer. Sixty imported buildings have simplified distance meshes. Near-field furnishings and vegetation use preset-specific view distances. The plant cache keeps at most 140 spatial cells.
+- `src/environment/water.js` owns the coastal surface, underwater fog and separate pool shader. The beach boardwalk exposes deck-height queries to the ground camera.
+
 
 - `src/data/world.js` defines the seed, metre scale, playable bounds, target envelope, stable identifiers, stations and quality budgets.
 - `src/terrain/field.js` owns the underlying terrain shape. The road grading field feeds mesh generation and collision queries. Future building pads should use the same interface.
@@ -92,9 +106,9 @@ The hardware target is 60 FPS at 1080p Medium on a desktop with a GTX 1650-class
 
 The committed WebP files are ready for use. To rebuild them, install Python 3 and Pillow and run `python scripts/prepare-terrain.py`. The script fetches 1K source maps and stores local colour textures and packed normal-XY / roughness textures. Source attribution is in [ASSETS.md](ASSETS.md).
 
-## Streets, zoning and Phase 3 placement
+## Kestrel Basin road and parcel design
 
-The master plan routes development along the alluvial terrace and southern pass. The steep outer ridges remain greenbelt. The network has **92 road segments** and **9.76 km of centerline within the playable boundary**. The South Pass Highway extends a further 225 m beyond the southern edge for visual continuity. Drivers keep left. The 61 graph nodes include crossroads, T-junctions, bends and the external highway gateway.
+Phase 2 established 92 road segments in the original survey, serving the six allocations below. Phase 3 connects its highway gateway and pedestrian network to the southern towns. Drivers keep left.
 
 The road cross-sections range from 2.75 m residential lanes to 3.6 m highway lanes. Basin Boulevard has six lanes, Meridian Avenue has four, and Juniper Heights winds around the western bench. Orchard Circle has a clockwise circulating lane, raised island, mountable apron and approach refuges. Footways, curb ramps, gutter channels, drain grates, arrows, crossings, signs, signals and parking bays share the road geometry batches.
 
@@ -116,20 +130,20 @@ Four additional parcels are in use as parking courts. Orchard Park, Orchard Play
 - The original elevation field remains available as `naturalElevation(x,z)`. Grading takes effect around road corridors and blends back to native topography. The graded bench accounts for the widest terrain LOD stencil. Plane changes occur on tile boundaries so the near, medium and far meshes all support the same road elevation.
 - `junctions.js` gives adjacent roads shared mouth sections and rounded curb returns. `build.js` generates pavement, roadside detail, parking and markings. `mesh-writer.js` clips the primitives to the terrain's 256 m tiles before centimetre quantization.
 - Vite compiles the plan into compressed, same-origin tile files. The browser streams base surfaces farther than small details, uses a shared road material, caps concurrent requests and keeps a bounded 12 MiB decoded-data cache. Unloaded render geometry is disposed. `RoadLayer.surfaceHeight` resolves the actual road, curb, island or sidewalk triangles for eye-level exploration.
-- The intended 94.63 km² envelope remains available for additional authored districts. The current plan and performance measurements cover Kestrel Basin.
+- The atlas and ground queries cover the full envelope. Forest placement and road metadata use the same world coordinates.
 
 ### Placement and navigation data
 
 A build exports `city/parcels.json` with metre units, stable IDs, zoning, program, elevations, corners, road frontage, entrance, yaw, setbacks, height limits and maximum footprint. The runtime also exports the same records from `src/roads/parcels.js`. Only records with `use === 'building'` are building sites. The buildable polygon is `envelope`. Yaw is in radians for a model whose front faces local +Z.
 
-For Phase 3, select a model appropriate to the parcel's program, verify its rotated footprint is inside the envelope and align its entrance with the frontage. The parcel elevation is the reference for foundation placement. Validate the imported model's entrance, footprint and collision proxy after placement.
+The Vite build also exports `city/buildings.json`. Each record references a parcel and asset, stores a world-space transform and lists its collision bounds and frontage access. The render layer can evict every instance without changing any of these records.
 
-`src/roads/navigation.js` exports 232 directed lane centerlines, 176 sidewalk paths, 146 crossings, vehicle and pedestrian graphs and a shortest-path function. Graph edges carry geometry, lengths and traversal types. Each site has a pedestrian destination named `parcel.id + '/entrance'`. Each parking court also has a vehicle destination named `parcel.id + '/parking'`. The highway gateway represents continuation into a future district.
+`src/roads/navigation.js` exports 310 directed lane centerlines, 226 sidewalk paths, 184 crossings, vehicle and pedestrian graphs and a shortest-path function. Graph edges carry geometry, lengths and traversal types. Each site has a pedestrian destination named `parcel.id + '/entrance'`. Each parking court also has a vehicle destination named `parcel.id + '/parking'`. South Pass Highway connects the basin to Port Mariner.
 
 ### Phase 2 verification
 
 The 15 automated tests include the original eight terrain, streaming and asset checks. They cover network connectivity, gradients, junction caps, frontage and zoning, walk and drive access, terrain agreement at all three LODs, deterministic mesh compilation and matching asphalt boundaries across tiles. The steepest sampled road centerline is **6.94%**.
 
-The production browser test visits the boulevard, rotary, hillside route and overview, exercises all seven overlays, and repeats the Phase 1 travel and resource checks with the road layer active. Screenshot captures are saved by `npm run test:browser`. Hardware-accelerated frame rate and foundation fit for actual building models remain to be measured.
+The production browser test visits the boulevard, rotary, hillside route and overview, exercises all seven overlays, and repeats the Phase 1 travel and resource checks with the road layer active. Screenshot captures are saved by `npm run test:browser`. These historical results correspond to the Phase 2 build.
 
 At Meridian Junction the Medium preset submitted 37 main-pass draw calls and 86,057 triangles. The software-rendered Chromium run held 49 detail terrain chunks, 25 horizon sectors and 28 road batches at this station. This workload is a baseline for comparing future Phase 3 asset imports.
