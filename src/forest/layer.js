@@ -125,7 +125,7 @@ export class ForestLayer {
         Math.hypot(
           Math.max(ox - camera.x, 0, camera.x - ox - TILE),
           Math.max(oz - camera.z, 0, camera.z - oz - TILE),
-        ) > 90
+        ) > 150
       )
         continue;
       for (let k = 0; k < records.length; k += 8) {
@@ -133,7 +133,7 @@ export class ForestLayer {
           z = oz + records[k + 1],
           y = records[k + h];
         const d = Math.hypot(x - camera.x, z - camera.z, y - camera.y);
-        if (d > 90) continue;
+        if (d > 150) continue;
         const index = id + '/' + k,
           old = this.previous.get(index);
         candidates.push({
@@ -144,8 +144,8 @@ export class ForestLayer {
           y,
           z,
           d,
-          score: d - (old ? 3 : 0),
-          nearScore: d - (old === 'near' ? 3 : 0),
+          score: d - (old ? 9 : 0),
+          nearScore: d - (old === 'near' ? 9 : 0),
           species: records[k + 5],
           scale: records[k + 6],
           yaw: records[k + 7],
@@ -154,7 +154,7 @@ export class ForestLayer {
     }
     candidates.sort((a, b) => a.nearScore - b.nearScore);
     const near = candidates
-      .filter((t) => t.d < (this.previous.get(t.index) === 'near' ? 28 : 25))
+      .filter((t) => t.d < (this.previous.get(t.index) === 'near' ? 48 : 40))
       .slice(0, config.near);
     for (const t of near) t.level = 'near';
     const far = candidates
