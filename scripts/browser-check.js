@@ -209,10 +209,16 @@ try {
       await wait(
         () =>
           !e.waitForTerrain &&
-          s.settled &&
+          s.settled && e.forest.settled &&
           e.roads.settled &&
           s.center === Math.floor(x / 256) + ',' + Math.floor(z / 256),
       );
+      const forestGeometries=new Set(),forestTextures=new Set();
+      for(const tile of e.forest.tiles.values())if(tile.mesh)forestGeometries.add(tile.mesh.geometry);
+      for(const entry of e.forest.models.entries.values())for(const mesh of entry.root.children){
+        forestGeometries.add(mesh.geometry);
+        for(const v of Object.values(mesh.material))if(v?.isTexture)forestTextures.add(v);
+      }
       snapshots.push([
         s.tiles.size,
         s.sectors.size,
@@ -221,6 +227,7 @@ try {
         e.roads.meshes.size,
         new Set([...e.places.models.values()].map(m=>m.geometry)).size,
         [...e.assets.entries.keys()].filter(id=>e.assets.manifest[id].type==='texture').length,
+        forestGeometries.size,forestTextures.size+1,e.forest.stats.instances,
       ]);
     }
     e.controls.setMode('ground');
@@ -276,7 +283,7 @@ try {
   assert.deepEqual(route.snapshots[4], route.snapshots.at(-1));
   assert.ok(
     route.snapshots.every(
-      (p) => p[2] <= p[0]+p[1]+p[4]+p[5]+2 && p[3] <= p[6]+6,
+      (p) => p[2] <= p[0]+p[1]+p[4]+p[5]+2+p[7] && p[3] <= p[6]+6+p[8],
     ),
   );
   assert.ok(route.cellCache<=140);

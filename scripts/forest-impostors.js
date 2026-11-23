@@ -47,6 +47,7 @@ try {
         antialias: true,
         preserveDrawingBuffer: true,
       });
+    renderer.setPixelRatio(3);
     renderer.setSize(size, size);
     renderer.setClearColor(0, 0);
     renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -58,6 +59,11 @@ try {
       const handle = await assets.acquire(s.assetId),
         tree = handle.value.instantiate();
       scene.add(tree);
+      // A distant needle may cover a fraction of a texel. Supersample masks
+      // before reducing the portrait to its shipping size.
+      tree.traverse((part) => {
+        if (part.material?.alphaTest) part.material.alphaTest *= 0.7;
+      });
       tree.getObjectByName('far').visible = false;
       const { width, height, depth } = s.dimensions;
       const span = Math.max(height * 1.12, Math.hypot(width, depth) * 1.1),
@@ -82,7 +88,13 @@ try {
           camera.lookAt(0, mid, 0);
           sun.position.set(Math.sin(yaw - 0.95), 1.2, Math.cos(yaw - 0.95));
           renderer.render(scene, camera);
-          ctx.drawImage(renderer.domElement, j * size, (i * 3 + tilt) * size);
+          ctx.drawImage(
+            renderer.domElement,
+            j * size,
+            (i * 3 + tilt) * size,
+            size,
+            size,
+          );
         }
       scene.remove(tree);
       handle.release();
