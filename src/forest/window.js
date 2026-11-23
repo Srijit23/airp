@@ -1,8 +1,8 @@
 import { TILE, plannedHalfSize } from '../data/world.js';
 export const qualityLevels = {
-  low: { near: 3, mid: 9, radius: 1150 },
-  medium: { near: 6, mid: 18, radius: 1650 },
-  high: { near: 12, mid: 32, radius: 2450 },
+  low: { near: 4, mid: 14, radius: 1150 },
+  medium: { near: 12, mid: 36, radius: 1650 },
+  high: { near: 20, mid: 56, radius: 2450 },
 };
 export function forestWindow(tx, tz, radius) {
   const limit = plannedHalfSize / TILE,
