@@ -1,28 +1,28 @@
-import {pixelThreshold} from './fade.js';
+import { pixelThreshold } from './fade.js';
 
 // Register three neighbouring views on a triangle in azimuth/elevation space.
 // The weights agree on every triangle edge, including the 360-degree seam.
-export const canopyVertex=`
+export const canopyVertex = `
 attribute vec2 offset;
 attribute vec3 heights,form;
 attribute float show;
 uniform float heightIndex,limit,age;
+uniform vec4 tileEye; // sine/cosine of bearing, elevation in radians, bearing in radians
 uniform vec2 sizes[5];
 uniform vec4 bounds[5];
 varying vec2 coord;
 varying vec3 weights;
-varying vec4 viewA,viewB,viewC;
-varying float visibility,horizon,parallax,arrival;
+varying vec2 viewA,viewB,viewC;
+varying float visibility,horizon,arrival;
 #include <fog_pars_vertex>
 
-vec4 sourceView(float column,float tilt,float species,float az,vec2 elevation){
-  if(parallax<.01)return vec4(mod(column,8.),species*3.+tilt,0.,0.);
-  float a=mod(column,8.)*.7853981634;
-  vec2 e=tilt<.5?vec2(1.,0.):(tilt<1.5?vec2(.809017,.587785):vec2(.207912,.978148));
-  float ca=cos(az-a);
-  vec2 shift=vec2(elevation.x*sin(az-a),elevation.y*e.x-elevation.x*e.y*ca);
-  float alignment=elevation.x*e.x*ca+elevation.y*e.y;
-  return vec4(mod(column,8.),species*3.+tilt,shift/max(.60,alignment));
+vec2 sourceView(float column,float tilt,float species){
+  // The last three atlas rows hold interleaved Scots pine bearings.
+  if(species==1.){
+    float band=mod(column,2.)<1.?1.:5.;
+    return vec2(mod(floor(column*.5),8.),band*3.+tilt);
+  }
+  return vec2(mod(column,8.),species*3.+tilt);
 }
 void main(){
   float y=heightIndex>1.5?heights.z:(heightIndex>.5?heights.y:heights.x);
@@ -35,22 +35,36 @@ void main(){
   arrival=smoothstep(0.,.35,age-.16*fract(form.z*.91));
   horizon=smoothstep(limit*.82,limit,range);
   // At street level, upright crowns stay rooted when the eye is below their centre.
-  vec3 dir=normalize(vec3(eye.x,max(0.,eye.y),eye.z)+vec3(.000001,0.,0.));
-  vec3 right=normalize(vec3(eye.z+.0001,0.,-eye.x));
-  vec3 up=normalize(cross(dir,right));
-  float az=atan(eye.x,eye.z)-form.z;
-  float elev=asin(clamp(dir.y,0.,1.));
-  float u=mod(az*1.2732395447,8.);
+  // At long range the views of adjacent trees converge. Reuse the camera
+  // bearing of this tile. Both paths converge before the cheap variant takes over.
+  float bearing=tileEye.w,elev=tileEye.z;
+  vec2 heading=tileEye.xy;
+  #ifndef DISTANT_TILE
+  float tileMix=smoothstep(320.,620.,range);
+  if(tileMix<1.){
+    vec2 local=normalize(eye.xz+vec2(.00001,0.));
+    heading=normalize(mix(local,tileEye.xy,tileMix));
+    bearing=atan(heading.x,heading.y);
+    elev=mix(atan(max(eye.y,0.),max(range,.00001)),tileEye.z,tileMix);
+  }
+  #endif
+  vec2 e=vec2(cos(elev),sin(elev));
+  vec3 right=vec3(heading.y,0.,-heading.x),up=vec3(-heading.x*e.y,e.x,-heading.y*e.y);
+  float az=bearing-form.z;
+  float angles=form.x==1.?16.:8.;
+  float u=mod(az*(angles*.1591549431),angles);
   float v=elev<.62831853?elev/.62831853:1.+min(.99999,(elev-.62831853)/.73303829);
-  parallax=1.-smoothstep(110.,230.,length(eye));
   vec2 grid=floor(vec2(u,v)),f=fract(vec2(u,v));
-  vec2 e=vec2(length(dir.xz),dir.y),corner;
-  // Triangular interpolation avoids four colour/depth samples for a crown.
+  // Subpixel crowns usually need just one sample. Keep a continuous angular
+  // crossfade near the boundaries, even in the cheap distant variant.
+  f=mix(f,smoothstep(vec2(.30),vec2(.70),f),smoothstep(240.,620.,range));
+  vec2 corner;
+  // Triangular interpolation avoids four colour samples for a crown.
   if(f.x>f.y){corner=vec2(1.,0.);weights=vec3(1.-f.x,f.x-f.y,f.y);}
   else{corner=vec2(0.,1.);weights=vec3(1.-f.y,f.y-f.x,f.x);}
-  viewA=sourceView(grid.x,grid.y,form.x,az,e);
-  viewB=sourceView(grid.x+corner.x,grid.y+corner.y,form.x,az,e);
-  viewC=sourceView(grid.x+1.,grid.y+1.,form.x,az,e);
+  viewA=sourceView(grid.x,grid.y,form.x);
+  viewB=sourceView(grid.x+corner.x,grid.y+corner.y,form.x);
+  viewC=sourceView(grid.x+1.,grid.y+1.,form.x);
   vec4 rect=bounds[int(form.x)];
   coord=mix(rect.xy,rect.zw,position.xy+.5);
   vec3 point=center+((coord.x-.5)*right+(coord.y-.5)*up)*size.x*form.y;
@@ -59,24 +73,19 @@ void main(){
   #include <fog_vertex>
 }`;
 
-export const canopyFragment=`
-uniform sampler2D map,depthMap;uniform float multisampled;
+export const canopyFragment = `
+uniform sampler2D map;uniform float multisampled;
 varying vec2 coord;
 varying vec3 weights;
-varying vec4 viewA,viewB,viewC;
-varying float visibility,horizon,parallax,arrival;
+varying vec2 viewA,viewB,viewC;
+varying float visibility,horizon,arrival;
 #include <fog_pars_fragment>
 vec2 atlasUV(vec2 uv,vec2 view){
   uv=clamp(uv,.005,.995);
-  return vec2((view.x+uv.x)*.125,1.-(view.y+1.-uv.y)/15.);
+  return vec2((view.x+uv.x)*.125,1.-(view.y+1.-uv.y)/18.);
 }
-vec4 portrait(vec4 view){
-  vec2 uv=atlasUV(coord,view.xy);
-  if(parallax>.01){
-    float depth=texture2D(depthMap,uv).r-.502;
-    uv=atlasUV(coord+view.zw*depth*parallax,view.xy);
-  }
-  return texture2D(map,uv);
+vec4 portrait(vec2 cell){
+  return texture2D(map,atlasUV(coord,cell));
 }
 void main(){
   float pixel=${pixelThreshold};
