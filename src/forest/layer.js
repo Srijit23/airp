@@ -1,9 +1,11 @@
+import {Canopy} from './canopy.js';
 import {TILE,tileAt} from '../data/world.js';
 import {ForestModels} from './models.js';
 import {forestWindow,qualityLevels} from './window.js';
 
 export class ForestLayer {
   constructor(scene,assets,fail){
+    this.canopy=new Canopy(scene,fail);
     this.scene=scene;this.models=new ForestModels(scene,assets,fail);
     this.tiles=new Map();this.previous=new Map();this.revision=0;this.dirty=true;
     this.worker=new Worker(new URL('./worker.js',import.meta.url),{type:'module'});
@@ -62,10 +64,11 @@ export class ForestLayer {
     this.updateDistant(drawn,streamer,config);
     this.revision++;
   }
-  updateDistant(drawn){
-    this.stats={chunks:this.tiles.size,instances:drawn.length,near:drawn.filter(t=>t.level==='near').length,
+  updateDistant(drawn,streamer,config){
+    const totals=this.canopy.update(this.tiles,drawn,streamer,config);
+    this.stats={chunks:this.tiles.size,...totals,near:drawn.filter(t=>t.level==='near').length,
       mid:drawn.filter(t=>t.level==='far').length,workerMs:this.lastWorkerMs||0};
   }
-  dropTile(){}
-  dispose(){this.worker.terminate();this.models.dispose();for(const tile of this.tiles.values())this.dropTile(tile);this.tiles.clear();}
+  dropTile(tile){this.canopy.drop(tile);}
+  dispose(){this.worker.terminate();this.models.dispose();for(const tile of this.tiles.values())this.dropTile(tile);this.tiles.clear();this.canopy.dispose();}
 }

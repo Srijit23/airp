@@ -1,0 +1,43 @@
+// Bake the approved source meshes into 60 local, alpha-masked crown portraits.
+import { chromium } from 'playwright-core';
+import { createServer } from 'vite';
+import { writeFile } from 'node:fs/promises';
+const server=await createServer({server:{host:'127.0.0.1',port:0,hmr:false},logLevel:'error'});
+await server.listen();
+let browser;
+try {
+  browser=await chromium.launch({executablePath:process.env.CHROME_PATH,args:process.env.AIRP_SOFTWARE_GL?
+    ['--no-zygote','--single-process','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
+  const page=await browser.newPage();
+  await page.route('**/bake.html',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Forest bake</title>'}));
+  await page.goto('http://127.0.0.1:'+server.httpServer.address().port+'/bake.html');
+  const data=await page.evaluate(async()=>{
+    const T=await import('/node_modules/three/build/three.module.js');
+    const {AssetManager}=await import('/src/core/assets.js'),{manifest}=await import('/src/data/assets.js');
+    const {treeSpecies}=await import('/src/trees/species.js');
+    const assets=new AssetManager(manifest,1);
+    const size=160, atlas=document.createElement('canvas');
+    atlas.width=size*4;atlas.height=size*15;
+    const ctx=atlas.getContext('2d'),renderer=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});
+    renderer.setSize(size,size);renderer.setClearColor(0,0);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;
+    const scene=new T.Scene(),sun=new T.DirectionalLight(0xffe2ad,2.65);
+    scene.add(new T.HemisphereLight(0xe3efff,0x95836a,1.3),sun);
+    for(const [i,s] of treeSpecies.entries()){
+      const handle=await assets.acquire(s.assetId),tree=handle.value.instantiate();scene.add(tree);
+      tree.getObjectByName('far').visible=false;
+      const {width,height,depth}=s.dimensions;
+      const span=Math.max(height*1.12,Math.hypot(width,depth)*1.10),mid=height*.5;
+      const camera=new T.OrthographicCamera(-span/2,span/2,span/2,-span/2,.1,140);
+      for(let tilt=0;tilt<3;tilt++)for(let j=0;j<4;j++){
+        const yaw=Math.PI*j/2,el=[0,36,78][tilt]*Math.PI/180;
+        camera.position.set(50*Math.sin(yaw)*Math.cos(el),mid+50*Math.sin(el),50*Math.cos(yaw)*Math.cos(el));
+        camera.lookAt(0,mid,0);
+        sun.position.set(Math.sin(yaw-.95),1.2,Math.cos(yaw-.95));
+        renderer.render(scene,camera);ctx.drawImage(renderer.domElement,j*size,(i*3+tilt)*size);
+      }
+      scene.remove(tree);handle.release();
+    }
+    return atlas.toDataURL('image/webp',.93).split(',')[1];
+  });
+  await writeFile('public/assets/trees/forest-views.webp',Buffer.from(data,'base64'));
+}finally{await browser?.close();await server.close();}
