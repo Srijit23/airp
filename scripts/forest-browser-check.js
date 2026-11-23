@@ -97,6 +97,7 @@ try {
             }
           : undefined,
         heapMiB: performance.memory?.usedJSHeapSize / 1048576,
+        landscapeProps: airp.places.plants,
         showcase: airp.showcase.groves.reduce(
           (sum, g) => sum + g.trees.length,
           0,
@@ -130,6 +131,10 @@ try {
     const reloaded = await page.evaluate(() => airp.forest.stats);
     assert.equal(reloaded.instances, results.interior.forest.instances);
     assert.equal(reloaded.chunks, results.interior.forest.chunks);
+    assert.equal(
+      await page.evaluate(() => airp.places.plants),
+      results.interior.landscapeProps,
+    );
 
     // Walk the same approved models used in the clearing, now in actual seeded stands.
     // Pick the closest natural tree of each species to the centre of its habitat tile.

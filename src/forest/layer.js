@@ -29,6 +29,7 @@ export class ForestLayer {
               16 * Math.floor(data.records[i + 1] / 16)
           ] = 1;
         this.tiles.set(key, data);
+        this.coverPending.delete(key);
         this.dirty = true;
         this.workerTimes.push(data.ms);
         if (this.workerTimes.length > 64) this.workerTimes.shift();
@@ -49,10 +50,12 @@ export class ForestLayer {
   pump() {
     if (this.busy || !this.jobs?.length) return;
     const job = this.jobs.shift();
-    if (job.priority > 8) this.nearReady = true;
     this.busy = true;
     this.inflight = job.key;
     this.worker.postMessage({ x: job.x, z: job.z });
+  }
+  get nearReady() {
+    return this.coverPending?.size === 0;
   }
   get settled() {
     return (
@@ -69,7 +72,6 @@ export class ForestLayer {
       key = tx + ',' + tz + '/' + quality;
     if (key !== this.key) {
       this.key = key;
-      this.nearReady = false;
       const list = forestWindow(tx, tz, config.radius);
       this.wanted = new Set(list.map((j) => j.key));
       for (const [id, tile] of this.tiles)
@@ -77,13 +79,24 @@ export class ForestLayer {
           this.dropTile(tile);
           this.tiles.delete(id);
         }
+      // PlaceLayer queries at most five 128 m cells in each direction. The
+      // occupancy mask must include in-flight tiles as well as queued jobs.
+      this.coverPending = new Set(
+        list
+          .filter(
+            (job) =>
+              Math.abs(job.x - tx) <= 3 &&
+              Math.abs(job.z - tz) <= 3 &&
+              !this.tiles.has(job.key),
+          )
+          .map((job) => job.key),
+      );
       this.jobs = list.filter(
         (j) =>
           !this.tiles.has(j.key) && !(this.busy && this.inflight === j.key),
       );
       this.dirty = true;
       this.pump();
-      if (!this.jobs.length || this.jobs[0].priority > 8) this.nearReady = true;
     }
     const terrainRevision = streamer.loads + streamer.unloads;
     if (

@@ -105,9 +105,9 @@ export class Engine {
       if (!this.waitForTerrain) this.controls.update(Math.min(elapsed, 0.06));
       this.streamer.update(this.camera.position, this.preset);
       this.roads.update(this.camera.position, this.streamer);
+      this.forest.update(this.camera.position, this.streamer, this.presetName);
       this.places.update(this.camera.position,this.presetName,time/1000,this.forest);
       this.showcase.update(this.camera.position, this.streamer);
-      this.forest.update(this.camera.position, this.streamer, this.presetName);
       this.water.update(this.camera.position,time/1000,this.preset);
       this.atmosphere.sky.visible=!this.water.underwater;
       this.scene.background=this.water.underwater?this.water.wet:null;
