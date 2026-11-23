@@ -130,6 +130,118 @@ try {
     const reloaded = await page.evaluate(() => airp.forest.stats);
     assert.equal(reloaded.instances, results.interior.forest.instances);
     assert.equal(reloaded.chunks, results.interior.forest.chunks);
+
+    // Walk the same approved models used in the clearing, now in actual seeded stands.
+    // Pick the closest natural tree of each species to the centre of its habitat tile.
+    const sampled = [];
+    for (const [id, tx, tz] of [
+      [0, -3, 7],
+      [1, -7, -6],
+      [2, -7, -6],
+      [3, -3, 7],
+      [4, -3, 7],
+    ]) {
+      await page.evaluate(
+        ({ tx, tz }) =>
+          airp.travel({
+            x: (tx + 0.5) * 256,
+            z: (tz + 0.5) * 256,
+            above: 12,
+            yaw: 0,
+            pitch: 0,
+          }),
+        { tx, tz },
+      );
+      await page.waitForFunction(
+        (key) => !airp.waitForTerrain && airp.forest.tiles.has(key),
+        tx + ',' + tz,
+      );
+      const target = await page.evaluate(
+        ({ id, tx, tz }) => {
+          const tile = airp.forest.tiles.get(tx + ',' + tz),
+            r = tile.records;
+          let best = Infinity,
+            target;
+          for (let k = 0; k < r.length; k += 8) {
+            const d = Math.hypot(128 - r[k], 128 - r[k + 1]);
+            if (r[k + 5] === id && d < best) {
+              best = d;
+              target = {
+                x: tx * 256 + r[k],
+                z: tz * 256 + r[k + 1],
+                index: tx + ',' + tz + '/' + k,
+              };
+            }
+          }
+          return target;
+        },
+        { id, tx, tz },
+      );
+      assert.ok(target);
+      await page.evaluate(
+        (t) =>
+          airp.travel({
+            x: t.x + 1.7,
+            z: t.z + 2.7,
+            above: 1.72,
+            yaw: 0.56,
+            pitch: 0.23,
+          }),
+        target,
+      );
+      await page.waitForFunction(
+        (t) =>
+          !airp.waitForTerrain && airp.forest.previous.get(t.index) === 'near',
+        target,
+      );
+      sampled.push(
+        await page.evaluate((id) => {
+          const parts = airp.forest.models.entries.get(id).parts.near;
+          return {
+            id,
+            bark: parts.some(
+              (p) => p.mesh.visible && p.mesh.material.normalMap,
+            ),
+            leaves: parts.some(
+              (p) => p.mesh.visible && p.mesh.material.alphaTest > 0,
+            ),
+          };
+        }, id),
+      );
+    }
+    assert.ok(sampled.every((s) => s.bark && s.leaves));
+    console.log(
+      'Verified five natural near-mesh species and their textured materials',
+      sampled.map((s) => s.id),
+    );
+
+    await page.evaluate((v) => {
+      airp.controls.setMode('ground');
+      airp.travel(v);
+    }, views.highway);
+    await page.waitForFunction(
+      () => !airp.waitForTerrain && airp.forest.settled,
+    );
+    const roadWalk = await page.evaluate(async () => {
+      const c = airp.controls,
+        p = airp.camera.position,
+        x = p.x,
+        z = p.z;
+      c.keys.add('KeyW');
+      try {
+        for (let i = 0; i < 20; i++) await new Promise(requestAnimationFrame);
+      } finally {
+        c.keys.clear();
+      }
+      return {
+        distance: Math.hypot(p.x - x, p.z - z),
+        height: p.y - c.height(p.x, p.z),
+      };
+    });
+    assert.ok(
+      roadWalk.distance > 0.1 && Math.abs(roadWalk.height - 1.72) < 0.06,
+    );
+    console.log('Ground camera followed the forest-lined highway', roadWalk);
   }
   assert.deepEqual(errors, []);
 } finally {

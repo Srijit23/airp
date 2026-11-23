@@ -194,6 +194,11 @@ export class InspectionPanel {
         r.memory.textures +
           ' GPU textures    DPR ' +
           e.renderer.getPixelRatio().toFixed(2),
+        ...(e.forest.stats ? [
+          e.forest.stats.instances.toLocaleString() + ' forest trees in ' + e.forest.stats.chunks + ' resident tiles',
+          e.forest.stats.near + ' near meshes    ' + e.forest.stats.mid + ' mid meshes    ' +
+            e.forest.stats.workerMeanMs.toFixed(1) + ' ms/tile on worker',
+        ] : []),
       ].join('\n');
     }
   }
