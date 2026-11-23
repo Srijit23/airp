@@ -13,3 +13,7 @@ mesh-simplified distance geometry, Meshopt geometry compression and
 embedded WebP textures. Snow and snow mound meshes were removed from the
 spruce. Source artwork and original credit metadata remain attributed to the
 author. Original filenames and SHA-256 digests are in src/trees/imported.json.
+
+Forest distance views were rendered from the same five credited
+models. The forest Scots pine needle mipmaps derive from tevy's original map.
+The forest spruce middle-detail indices reuse the approved Snowy Spruce mesh.

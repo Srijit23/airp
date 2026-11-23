@@ -1,3 +1,4 @@
+import { ForestLayer } from '../forest/layer.js';
 import { TreeShowcase } from '../trees/showcase.js';
 import {PlaceLayer} from '../places/layer.js';
 import {SouthSound} from '../environment/water.js';
@@ -60,6 +61,7 @@ export class Engine {
     this.roads = await RoadLayer.create(this.scene, this.assets, this.fail);
     this.places=await PlaceLayer.create(this.scene,this.assets);
     this.showcase = new TreeShowcase(this.scene, this.assets, this.fail);
+    this.forest = new ForestLayer(this.scene, this.assets, this.fail);
     this.water=new SouthSound(this.scene);
     this.controls = new InspectionCamera(
       this.camera,
@@ -103,14 +105,15 @@ export class Engine {
       if (!this.waitForTerrain) this.controls.update(Math.min(elapsed, 0.06));
       this.streamer.update(this.camera.position, this.preset);
       this.roads.update(this.camera.position, this.streamer);
-      this.places.update(this.camera.position,this.presetName,time/1000);
+      this.forest.update(this.camera, this.streamer, this.presetName, this.canvas.height, elapsed);
+      this.places.update(this.camera.position,this.presetName,time/1000,this.forest);
       this.showcase.update(this.camera.position, this.streamer);
       this.water.update(this.camera.position,time/1000,this.preset);
       this.atmosphere.sky.visible=!this.water.underwater;
       this.scene.background=this.water.underwater?this.water.wet:null;
       if (
         this.waitForTerrain &&
-        this.streamer.covered &&
+        this.streamer.covered && this.forest.arrivalReady &&
         this.roads.nearReady && (!this.showcase.active || this.showcase.ready)
       ) {
         this.waitForTerrain = false;
@@ -130,7 +133,7 @@ export class Engine {
       }
       this.atmosphere.follow(
         this.camera.position,
-        this.streamer.loads + this.streamer.unloads + this.roads.revision+this.places.revision + this.showcase.revision,
+        this.streamer.loads + this.streamer.unloads + this.roads.revision+this.places.revision + this.showcase.revision + this.forest.revision,
       );
       this.renderer.render(this.scene, this.camera);
       this.frames++;
@@ -164,6 +167,7 @@ export class Engine {
     this.streamer?.dispose();
     this.roads?.dispose();
     this.showcase?.clear();
+    this.forest?.dispose();
     this.places?.dispose();this.water?.dispose();
     this.atmosphere.dispose();
     this.terrain?.dispose();

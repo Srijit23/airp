@@ -54,3 +54,6 @@ for (const species of treeSpecies) {
   manifest[id] = { id, type: 'gltf', category: 'tree', meshopt: true,
     url: import.meta.env.BASE_URL + species.modelPath, source: species.source.url, license: species.source.license };
 }
+
+manifest['forest-cover']={id:'forest-cover',type:'texture',category:'forest',color:false,
+  url:import.meta.env.BASE_URL+'assets/trees/forest-cover.webp'};

@@ -1,0 +1,46 @@
+[
+  {
+    "name": "lowland",
+    "areaKm2": 2.24256,
+    "trees": {
+      "oak": 8385,
+      "pine": 1684,
+      "spruce": 222,
+      "birch": 2912,
+      "acacia": 5674
+    }
+  },
+  {
+    "name": "valley",
+    "areaKm2": 4.096,
+    "trees": {
+      "oak": 11750,
+      "pine": 6463,
+      "spruce": 432,
+      "birch": 5300,
+      "acacia": 0
+    }
+  },
+  {
+    "name": "upland",
+    "areaKm2": 17.03424,
+    "trees": {
+      "oak": 8958,
+      "pine": 145321,
+      "spruce": 38152,
+      "birch": 14783,
+      "acacia": 0
+    }
+  },
+  {
+    "name": "montane",
+    "areaKm2": 56.318976,
+    "trees": {
+      "oak": 6807,
+      "pine": 286295,
+      "spruce": 282122,
+      "birch": 22546,
+      "acacia": 0
+    }
+  }
+]

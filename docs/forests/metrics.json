@@ -1,0 +1,237 @@
+{
+  "before": {
+    "highway": {
+      "frameMs": 355.19999999995343,
+      "p90Ms": 551.6000000000931,
+      "fps": 2.8153153153156842,
+      "draws": 85,
+      "triangles": 340438,
+      "geometries": 174,
+      "textures": 20,
+      "heapMiB": 54.168701171875,
+      "showcase": 0
+    },
+    "highway-aerial": {
+      "frameMs": 246.30000000004657,
+      "p90Ms": 464.70000000018626,
+      "fps": 4.060089321964315,
+      "draws": 69,
+      "triangles": 325587,
+      "geometries": 173,
+      "textures": 20,
+      "heapMiB": 54.168701171875,
+      "showcase": 0
+    },
+    "slope": {
+      "frameMs": 817.6999999999534,
+      "p90Ms": 1625.6000000000931,
+      "fps": 1.2229423994130573,
+      "draws": 37,
+      "triangles": 993970,
+      "geometries": 151,
+      "textures": 21,
+      "heapMiB": 54.168701171875,
+      "showcase": 0
+    },
+    "interior": {
+      "frameMs": 1370.7999999998137,
+      "p90Ms": 2454.2999999998137,
+      "fps": 0.7295010213015289,
+      "draws": 34,
+      "triangles": 1342266,
+      "geometries": 154,
+      "textures": 21,
+      "heapMiB": 54.168701171875,
+      "showcase": 0
+    },
+    "edge": {
+      "frameMs": 149.89999999990687,
+      "p90Ms": 643.1000000000931,
+      "fps": 6.671114076054845,
+      "draws": 84,
+      "triangles": 339887,
+      "geometries": 186,
+      "textures": 21,
+      "heapMiB": 54.168701171875,
+      "showcase": 0
+    },
+    "coast": {
+      "frameMs": 349.79999999981374,
+      "p90Ms": 406.39999999990687,
+      "fps": 2.8587764436836265,
+      "draws": 69,
+      "triangles": 307738,
+      "geometries": 178,
+      "textures": 21,
+      "heapMiB": 54.168701171875,
+      "showcase": 0
+    },
+    "showcase": {
+      "frameMs": 898.1999999999534,
+      "p90Ms": 932.7000000001863,
+      "fps": 1.1133377866845378,
+      "draws": 159,
+      "triangles": 762030,
+      "geometries": 215,
+      "textures": 39,
+      "heapMiB": 54.168701171875,
+      "showcase": 15
+    }
+  },
+  "after": {
+    "highway": {
+      "frameMs": 602.6999999999534,
+      "p90Ms": 1276.1999999999534,
+      "fps": 1.6592002654721707,
+      "draws": 149,
+      "triangles": 382946,
+      "geometries": 246,
+      "textures": 35,
+      "forest": {
+        "chunks": 193,
+        "instances": 98457,
+        "recordMiB": 3.004669189453125,
+        "near": 3,
+        "mid": 18,
+        "workerMeanMs": 1.2328124999949068,
+        "workerMaxMs": 3.2999999998137355,
+        "updateMs": 0.5,
+        "frustumInstances": 28242
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 0
+    },
+    "highway-aerial": {
+      "frameMs": 393.5,
+      "p90Ms": 569,
+      "fps": 2.5412960609911055,
+      "draws": 106,
+      "triangles": 279175,
+      "geometries": 240,
+      "textures": 22,
+      "forest": {
+        "chunks": 186,
+        "instances": 88191,
+        "recordMiB": 2.691375732421875,
+        "near": 0,
+        "mid": 0,
+        "workerMeanMs": 1.4171874999992724,
+        "workerMaxMs": 5.699999999953434,
+        "updateMs": 0.8000000000465661,
+        "frustumInstances": 23736
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 0
+    },
+    "slope": {
+      "frameMs": 1125.0999999998603,
+      "p90Ms": 2167.4000000001397,
+      "fps": 0.8888098835660156,
+      "draws": 88,
+      "triangles": 1075828,
+      "geometries": 211,
+      "textures": 23,
+      "forest": {
+        "chunks": 193,
+        "instances": 97541,
+        "recordMiB": 2.976715087890625,
+        "near": 0,
+        "mid": 0,
+        "workerMeanMs": 1.7640624999985448,
+        "workerMaxMs": 5.399999999906868,
+        "updateMs": 0.39999999990686774,
+        "frustumInstances": 40929
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 0
+    },
+    "interior": {
+      "frameMs": 1038.3000000000466,
+      "p90Ms": 2108.399999999907,
+      "fps": 0.9631127805065541,
+      "draws": 105,
+      "triangles": 722173,
+      "geometries": 245,
+      "textures": 34,
+      "forest": {
+        "chunks": 193,
+        "instances": 111652,
+        "recordMiB": 3.4073486328125,
+        "near": 6,
+        "mid": 18,
+        "workerMeanMs": 2.8093750000080036,
+        "workerMaxMs": 9.600000000093132,
+        "updateMs": 1.1999999999534339,
+        "frustumInstances": 53311
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 0
+    },
+    "edge": {
+      "frameMs": 711.5,
+      "p90Ms": 1500.4000000001397,
+      "fps": 1.4054813773717498,
+      "draws": 146,
+      "triangles": 457637,
+      "geometries": 249,
+      "textures": 34,
+      "forest": {
+        "chunks": 193,
+        "instances": 90395,
+        "recordMiB": 2.758636474609375,
+        "near": 0,
+        "mid": 18,
+        "workerMeanMs": 1.48437499998181,
+        "workerMaxMs": 4.199999999953434,
+        "updateMs": 0.5,
+        "frustumInstances": 32409
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 0
+    },
+    "coast": {
+      "frameMs": 387.69999999995343,
+      "p90Ms": 740.5,
+      "fps": 2.5793139025022445,
+      "draws": 83,
+      "triangles": 306058,
+      "geometries": 210,
+      "textures": 23,
+      "forest": {
+        "chunks": 119,
+        "instances": 42106,
+        "recordMiB": 1.28497314453125,
+        "near": 0,
+        "mid": 0,
+        "workerMeanMs": 1.6406249999781721,
+        "workerMaxMs": 25.799999999813735,
+        "updateMs": 0.19999999995343387,
+        "frustumInstances": 5656
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 0
+    },
+    "showcase": {
+      "frameMs": 1057.6999999999534,
+      "p90Ms": 1138.9000000001397,
+      "fps": 0.9454476694715364,
+      "draws": 223,
+      "triangles": 803908,
+      "geometries": 292,
+      "textures": 41,
+      "forest": {
+        "chunks": 193,
+        "instances": 98447,
+        "recordMiB": 3.004364013671875,
+        "near": 0,
+        "mid": 0,
+        "workerMeanMs": 2.564062500001455,
+        "workerMaxMs": 8.099999999860302,
+        "updateMs": 0.39999999990686774,
+        "frustumInstances": 20939
+      },
+      "heapMiB": 77.62908935546875,
+      "showcase": 15
+    }
+  }
+}

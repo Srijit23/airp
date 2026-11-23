@@ -9,7 +9,7 @@ export async function terrainMaterial(assets) {
     'silt',
     'meadow-surface',
     'stone-surface',
-    'silt-surface','place-forest_floor','place-sand_02',
+    'silt-surface','place-forest_floor','place-sand_02','forest-cover',
   ];
   const settled = await Promise.allSettled(ids.map((id) => assets.acquire(id)));
   const handles = settled
@@ -30,7 +30,7 @@ export async function terrainMaterial(assets) {
       'siltMap',
       'meadowNS',
       'stoneNS',
-      'siltNS','duffMap','beachMap',
+      'siltNS','duffMap','beachMap','coverMap',
     ];
     names.forEach(
       (name, i) => (shader.uniforms[name] = { value: handles[i].value }),
@@ -48,7 +48,7 @@ export async function terrainMaterial(assets) {
     shader.fragmentShader =
       `
       varying vec3 vGround; varying vec3 vSlope;
-      uniform sampler2D meadowMap,stoneMap,siltMap,meadowNS,stoneNS,siltNS,duffMap,beachMap;
+      uniform sampler2D meadowMap,stoneMap,siltMap,meadowNS,stoneNS,siltNS,duffMap,beachMap,coverMap;
       uniform float showGrid;
       float hash2(vec2 p){
         vec3 q=fract(vec3(p.xyx)*.1031);
@@ -100,6 +100,10 @@ export async function terrainMaterial(assets) {
         float under=woodland*(1.-smoothstep(.19,.50,1.-gn.y));
         diffuseColor.rgb=mix(diffuseColor.rgb,litter*vec3(.97,1.10,.81)*(.90+.21*macro),under*.92);
       }
+      // Contact shade under actual occupied stands also ties distant crown silhouettes into the slope.
+      vec2 coverUV=p/9728.+.5;
+      float cover=all(equal(clamp(coverUV,0.,1.),coverUV))?texture2D(coverMap,vec2(coverUV.x,1.-coverUV.y)).r:0.;
+      diffuseColor.rgb*=mix(vec3(1.),vec3(.39,.49,.35),cover);
       float strand=3508.+140.*sin(p.x/710.)+50.*sin(p.x/211.)-p.y;
       float sand=1.-smoothstep(42.,155.,strand+18.*macro);
       if(sand>.001){

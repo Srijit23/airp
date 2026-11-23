@@ -180,11 +180,11 @@ export class PlaceLayer {
       };
     });
   }
-  update(p, quality, time) {
+  update(p, quality, time, forest) {
     this.clock.value = time;
     const cx = Math.floor(p.x / 128),
       cz = Math.floor(p.z / 128),
-      stamp = cx + ',' + cz + quality;
+      stamp = cx + ',' + cz + quality + Boolean(forest?.nearReady);
     if (stamp === this.stamp) return;
     this.stamp = stamp;
     const cfg = quality === 'high' ? {
@@ -278,6 +278,7 @@ export class PlaceLayer {
         this.cells.set(id, list);
         for (const v of list) {
           if (v.tier >= cfg.tiers) continue;
+          if ((v.asset === 'pine' || v.asset === 'broadleaf') && forest?.nearReady && forest.containsWildCrown(v.x,v.z)) continue;
           const d = Math.hypot(v.x - x, v.z - z);
           if (d > 275 && v.asset === 'pine' && v.tier !== 0) continue;
           if (d > 200 && !['pine', 'broadleaf', 'garden_tree_palmDetailedTall'].includes(v.asset)) continue;
