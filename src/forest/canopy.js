@@ -1,4 +1,4 @@
-import {pixelThreshold} from './fade.js';
+import {canopyVertex,canopyFragment} from './portrait-shader.js';
 import rectangles from './portraits.json' with { type: 'json' };
 import {
   InstancedBufferGeometry,
@@ -19,21 +19,23 @@ import {
 import { TILE } from '../data/world.js';
 import { treeSpecies } from '../trees/species.js';
 
-// Four azimuths at three elevations per species. Choose each portrait in tree-local
-// coordinates, including from directly overhead. Only the texture and shader are shared.
+// Shared registered colour/depth views of the exact near geometry, including overhead views.
 export class Canopy {
   constructor(scene, fail) {
     this.scene = scene;
     this.hidden = [];
     this.visibleInstances = 0;
     this.visibleFrame = -1;
-    const map = new TextureLoader().load(
-      import.meta.env.BASE_URL + 'assets/trees/forest-views.webp',
-      undefined,
-      undefined,
-      fail,
-    );
-    map.colorSpace = SRGBColorSpace;
+    const loader=new TextureLoader();
+    let loaded=0;this.ready=false;
+    const load=name=>loader.load(import.meta.env.BASE_URL+'assets/trees/'+name+'.webp',()=>{this.ready=++loaded===2;},undefined,fail);
+    const map=load('forest-views'),depth=load('forest-depth');
+    map.colorSpace=SRGBColorSpace;
+    const bounds=treeSpecies.flatMap((_,i)=>{
+      const views=rectangles.slice(i*24,(i+1)*24);
+      return [0,1,2,3].map(k=>k<2?Math.max(0,Math.min(...views.map(v=>v[k]))-.055):
+        Math.min(1,Math.max(...views.map(v=>v[k]))+.055));
+    });
     const sizes = treeSpecies.map(
       ({ dimensions: { width, height, depth } }) => [
         Math.max(height * 1.12, Math.hypot(width, depth) * 1.1),
@@ -41,62 +43,16 @@ export class Canopy {
       ],
     );
     this.material = new ShaderMaterial({
-      fog: true,
+      fog: true,alphaToCoverage:true,
       uniforms: {
         ...UniformsUtils.clone(UniformsLib.fog),
         map: { value: map },
         heightIndex: { value: 0 },
         limit: { value: 1650 },
         sizes: { value: sizes.flat() },
-        rects: { value: rectangles.flat() },
+        bounds:{value:bounds},depthMap:{value:depth},age:{value:2},multisampled:{value:1},
       },
-      vertexShader: `
-      attribute vec2 offset;
-      attribute vec3 heights, form;
-      attribute float show;
-      uniform float heightIndex,limit;
-      uniform vec2 sizes[5];
-      uniform vec4 rects[60];
-      varying vec2 portrait;
-      varying float lightness, horizon, visibility;
-      #include <fog_pars_vertex>
-      void main(){
-        float height=heightIndex>1.5?heights.z:(heightIndex>.5?heights.y:heights.x);
-        vec2 size=sizes[int(form.x)];
-        vec3 center=(modelMatrix*vec4(offset.x,height+size.y*form.y,offset.y,1.)).xyz;
-        vec3 eye=cameraPosition-center;
-        float range=length(eye.xz);
-        visibility=show;
-        if(show<=0. || range>limit){gl_Position=vec4(2.,2.,2.,1.);return;}
-        horizon=smoothstep(limit*.82,limit,range);
-        vec3 dir=normalize(eye);
-        vec3 right=normalize(vec3(eye.z+.0001,0.,-eye.x));
-        vec3 up=normalize(cross(dir,right));
-        float az=mod(floor((atan(eye.x,eye.z)-form.z)*.636619772+.5),4.);
-        float tilt=dir.y>.839?2.:(dir.y>.309?1.:0.);
-        vec4 rect=rects[int(form.x*12.+tilt*4.+az)];
-        vec2 coord=mix(rect.xy,rect.zw,position.xy+.5);
-        vec3 point=center+((coord.x-.5)*right+(coord.y-.5)*up)*size.x*form.y;
-        vec4 mvPosition=viewMatrix*vec4(point,1.);
-        gl_Position=projectionMatrix*mvPosition;
-        portrait=vec2((az+coord.x)/4.,1.-(form.x*3.+tilt+1.-coord.y)/15.);
-        lightness=.90+.10*cos(form.z);
-        #include <fog_vertex>
-      }`,
-      fragmentShader: `
-      uniform sampler2D map;
-      varying vec2 portrait;
-      varying float lightness, horizon, visibility;
-      #include <fog_pars_fragment>
-      void main(){
-        if(visibility<1. && ${pixelThreshold} < 1.-visibility)discard;
-        vec4 canopy=texture2D(map,portrait);
-        if(canopy.a<.22)discard;
-        gl_FragColor=vec4(canopy.rgb*lightness,1.);
-        #include <colorspace_fragment>
-        #include <fog_fragment>
-        gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,horizon);
-      }`,
+      vertexShader:canopyVertex,fragmentShader:canopyFragment,
     });
   }
   attach(t) {
@@ -141,7 +97,10 @@ export class Canopy {
     const mesh = (t.mesh = new Mesh(geometry, this.material));
     mesh.position.set(t.x * TILE, 0, t.z * TILE);
     mesh.onBeforeRender = (renderer) => {
+      if(this.samples===undefined)this.samples=renderer.getContext().getParameter(renderer.getContext().SAMPLES);
+      this.material.uniforms.multisampled.value=this.samples>1?1:0;
       this.material.uniforms.heightIndex.value = t.heightIndex;
+      this.material.uniforms.age.value=Math.max(0,(performance.now()-t.born)/1000);
       this.material.uniformsNeedUpdate = true;
       const frame = renderer.info.render.frame;
       if (frame !== this.visibleFrame) {
@@ -150,6 +109,7 @@ export class Canopy {
       }
       this.visibleInstances += count;
     };
+    t.born=t.immediate?-10000:performance.now();
     t.show = show;
     this.scene.add(mesh);
   }
@@ -189,6 +149,7 @@ export class Canopy {
   dispose() {
     this.hidden = [];
     this.material.uniforms.map.value.dispose();
+    this.material.uniforms.depthMap.value.dispose();
     this.material.dispose();
   }
 }

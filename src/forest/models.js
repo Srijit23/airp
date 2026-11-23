@@ -1,3 +1,4 @@
+import {loadNeedleMap} from './needles.js';
 import {Group,InstancedMesh,Matrix4,Object3D,BufferAttribute,Color,DynamicDrawUsage} from 'three';
 import {treeSpecies} from '../trees/species.js';
 import {profiles} from './lod.js';
@@ -30,6 +31,13 @@ export class ForestModels{
       const reduced=species.id==='spruce'?await spruceIndices():null;
       if(this.entries.get(index)!==entry)return;
       const source=handle.value.instantiate();source.updateMatrixWorld(true);
+      if(species.id==='pine'){
+        let original;
+        source.traverse(p=>{if(p.material?.name==='pine_needles')original=p.material.map;});
+        const map=await loadNeedleMap(original,this.assets.anisotropy);
+        if(this.entries.get(index)!==entry){map.dispose();return;}
+        entry.needleMap=map;
+      }
       for(const level of species.lod.nodes){
         const useIndices=reduced && level==='far';
         source.getObjectByName(useIndices?'near':level).traverse(part=>{
@@ -40,7 +48,7 @@ export class ForestModels{
             geometry.setIndex(new BufferAttribute(reduced.get(part.material.name),1));
             entry.owned.push(geometry);
           }
-          if(!entry.materials.has(part.material))entry.materials.set(part.material,forestMaterials(part.material));
+          if(!entry.materials.has(part.material))entry.materials.set(part.material,forestMaterials(part.material,part.material.name==='pine_needles'?entry.needleMap:null));
           const {surface,depth}=entry.materials.get(part.material);
           const capacity=level==='near'?profiles.high.nearCap+4:profiles.high.midCap+10;
           const mesh=new InstancedMesh(geometry,surface,capacity);
@@ -79,6 +87,7 @@ export class ForestModels{
   remove(i){
     const e=this.entries.get(i);e.root.removeFromParent();e.root.children.forEach(m=>m.dispose());
     for(const m of e.materials.values()){m.surface.dispose();m.depth.dispose();}
+    e.needleMap?.dispose();
     e.owned.forEach(g=>g.dispose());e.handle?.release();this.entries.delete(i);
   }
   dispose(){for(const i of this.entries.keys())this.remove(i);}

@@ -113,7 +113,7 @@ export class Engine {
       this.scene.background=this.water.underwater?this.water.wet:null;
       if (
         this.waitForTerrain &&
-        this.streamer.covered &&
+        this.streamer.covered && this.forest.arrivalReady &&
         this.roads.nearReady && (!this.showcase.active || this.showcase.ready)
       ) {
         this.waitForTerrain = false;

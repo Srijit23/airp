@@ -35,6 +35,7 @@ export class ForestLayer {
             Math.floor(data.records[i] / 16) +
               16 * Math.floor(data.records[i + 1] / 16)
           ] = 1;
+        data.immediate=Math.max(Math.abs(this.tx-data.x),Math.abs(this.tz-data.z))<=1;
         this.tiles.set(key, data);
         this.coverPending.delete(key);
         this.dirty = true;
@@ -61,6 +62,14 @@ export class ForestLayer {
     this.inflight = job.key;
     this.worker.postMessage({ x: job.x, z: job.z });
   }
+  get arrivalReady(){
+    if(!this.canopy.ready || !this.wanted)return false;
+    for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){
+      const k=(this.tx+i)+','+(this.tz+j);
+      if(this.wanted.has(k) && !this.tiles.has(k))return false;
+    }
+    return true;
+  }
   get nearReady() {
     return this.coverPending?.size === 0;
   }
@@ -68,7 +77,7 @@ export class ForestLayer {
     return (
       !this.busy &&
       !this.jobs?.length &&
-      !this.handoffs.moving && !this.dirty &&
+      this.canopy.ready && !this.handoffs.moving && !this.dirty &&
       [...this.models.entries.values()].every((e) => e.ready)
     );
   }
@@ -80,7 +89,7 @@ export class ForestLayer {
       config = qualityLevels[quality],
       key = tx + ',' + tz + '/' + quality;
     if (key !== this.key) {
-      this.key = key;
+      this.key = key;this.tx=tx;this.tz=tz;
       const list = forestWindow(tx, tz, config.radius);
       this.wanted = new Set(list.map((j) => j.key));
       for (const [id, tile] of this.tiles)
@@ -146,9 +155,12 @@ export class ForestLayer {
     if(signature!==this.drawSignature || this.keep!==this.lastKeep){
       this.models.draw(drawn,this.keep);this.drawn=drawn;this.lastKeep=this.keep;
       this.previous=new Map(drawn.filter(t=>t.weight>=.5).map(t=>[t.index,t.level]));
-      if(signature!==this.drawSignature)this.revision++;
+      // A stationary transition needs a final clean shadow map. Avoid redrawing
+      // every shadow caster for each intermediate screen-door pattern.
+      if(signature!==this.drawSignature && (!this.handoffs.moving || !this.wasMoving))this.revision++;
       this.drawSignature=signature;
     }
+    this.wasMoving=this.handoffs.moving;
     this.updateDistant(this.drawn||[],streamer,config);
     this.stats.budgetFactor=this.budget.factor;
     this.stats.updateMs=performance.now()-start;

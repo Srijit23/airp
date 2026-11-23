@@ -227,7 +227,7 @@ try {
         e.roads.meshes.size,
         new Set([...e.places.models.values()].map(m=>m.geometry)).size,
         [...e.assets.entries.keys()].filter(id=>e.assets.manifest[id].type==='texture').length,
-        forestGeometries.size,forestTextures.size+1,e.forest.stats.instances,
+        forestGeometries.size,forestTextures.size+2,e.forest.stats.instances,
       ]);
     }
     e.controls.setMode('ground');

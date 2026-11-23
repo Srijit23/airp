@@ -1,9 +1,9 @@
 import { treeSpecies } from '../trees/species.js';
 
 export const profiles = {
-  low:    { search:145, nearPx:130, midPx:35, triangles:320000, nearCap:16, midCap:54 },
-  medium: { search:205, nearPx:105, midPx:24, triangles:620000, nearCap:32, midCap:112 },
-  high:   { search:275, nearPx:83,  midPx:17, triangles:1000000, nearCap:52, midCap:200 },
+  low:    { search:145, nearPx:130, midPx:35, triangles:270000, nearCap:16, midCap:54 },
+  medium: { search:205, nearPx:105, midPx:24, triangles:525000, nearCap:32, midCap:112 },
+  high:   { search:275, nearPx:83,  midPx:17, triangles:820000, nearCap:52, midCap:200 },
 };
 export const spruceMidTriangles=8774;
 export function triangleCost(t,level) {
@@ -18,10 +18,10 @@ export class DetailBudget {
   sample(dt,stable){
     if(!stable || dt<=0 || dt>2)return false;
     this.average+=(Math.min(100,dt*1000)-this.average)*Math.min(.25,dt*.9);
-    this.seconds+=Math.min(.15,dt);
+    this.seconds+=Math.min(.5,dt);
     if(this.seconds<1.2)return false;
     this.seconds=0;
-    const next=Math.max(.68,Math.min(1.28,this.factor+(this.average>32?-.08:this.average<19?.04:0)));
+    const next=Math.max(.68,Math.min(1.28,this.factor+(this.average>48?-.12:this.average>32?-.08:this.average<19?.04:0)));
     if(Math.abs(next-this.factor)<.001)return false;
     this.factor=next;return true;
   }

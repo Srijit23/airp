@@ -1,4 +1,5 @@
-// Bake the approved source meshes into 60 local, alpha-masked crown portraits.
+// Bake registered colour and depth portraits from the five approved near meshes.
+import {writePortraits,writeDepth} from './trees/portrait-pixels.mjs';
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 import { writeFile } from 'node:fs/promises';
@@ -32,15 +33,18 @@ try {
     'http://127.0.0.1:' + server.httpServer.address().port + '/bake.html',
   );
   const data = await page.evaluate(async () => {
+    const {loadNeedleMap,needleLighting}=await import('/src/forest/needles.js');
     const T = await import('/node_modules/three/build/three.module.js');
     const { AssetManager } = await import('/src/core/assets.js'),
       { manifest } = await import('/src/data/assets.js');
     const { treeSpecies } = await import('/src/trees/species.js');
     const assets = new AssetManager(manifest, 1);
-    const size = 160,
+    const size = 224, azimuths=8,
       atlas = document.createElement('canvas');
-    atlas.width = size * 4;
+    atlas.width = size * azimuths;
     atlas.height = size * 15;
+    const depths=atlas.cloneNode();depths.width=atlas.width;depths.height=atlas.height;
+    const depthCtx=depths.getContext('2d');
     const ctx = atlas.getContext('2d'),
       renderer = new T.WebGLRenderer({
         alpha: true,
@@ -61,9 +65,30 @@ try {
       scene.add(tree);
       // A distant needle may cover a fraction of a texel. Supersample masks
       // before reducing the portrait to its shipping size.
-      tree.traverse((part) => {
-        if (part.material?.alphaTest) part.material.alphaTest *= 0.7;
+      let needleMap;
+      if(s.id==='pine'){
+        let needles;
+        tree.traverse(part=>{if(part.material?.name==='pine_needles')needles=part.material;});
+        needleMap=await loadNeedleMap(needles.map,4);
+        needles.map=needleMap;needles.onBeforeCompile=needleLighting;
+      }
+      const originals=new Map(),depthMaterials=new Map();
+      tree.traverse(part=>{
+        if(!part.isMesh)return;
+        originals.set(part,part.material);
+        if(!depthMaterials.has(part.material)){
+          const m=part.material.clone();
+          m.onBeforeCompile=shader=>{
+            shader.uniforms.forestSpan={value:span};
+            shader.fragmentShader='uniform float forestSpan;\n'+shader.fragmentShader.replace('#include <opaque_fragment>',
+              'gl_FragColor=vec4(vec3(clamp(.5+(50.-vViewPosition.z)/forestSpan,0.,1.)),diffuseColor.a);')
+              .replace('#include <tonemapping_fragment>','').replace('#include <colorspace_fragment>','');
+          };
+          depthMaterials.set(part.material,m);
+        }
       });
+      // Shared leaf materials are adjusted once, before either pass.
+      for(const [m,dep] of depthMaterials)if(m.alphaTest){if(m.name!=='pine_needles')m.alphaTest*=.86;dep.alphaTest=m.alphaTest;}
       tree.getObjectByName('far').visible = false;
       const { width, height, depth } = s.dimensions;
       const span = Math.max(height * 1.12, Math.hypot(width, depth) * 1.1),
@@ -77,8 +102,8 @@ try {
         140,
       );
       for (let tilt = 0; tilt < 3; tilt++)
-        for (let j = 0; j < 4; j++) {
-          const yaw = (Math.PI * j) / 2,
+        for (let j = 0; j < azimuths; j++) {
+          const yaw = (Math.PI * 2 * j) / azimuths,
             el = ([0, 36, 78][tilt] * Math.PI) / 180;
           camera.position.set(
             50 * Math.sin(yaw) * Math.cos(el),
@@ -86,7 +111,8 @@ try {
             50 * Math.cos(yaw) * Math.cos(el),
           );
           camera.lookAt(0, mid, 0);
-          sun.position.set(Math.sin(yaw - 0.95), 1.2, Math.cos(yaw - 0.95));
+          sun.position.set(-.8,.62,-.32);
+          for(const [part,mat] of originals)part.material=mat;
           renderer.render(scene, camera);
           ctx.drawImage(
             renderer.domElement,
@@ -95,13 +121,19 @@ try {
             size,
             size,
           );
+          for(const [part,mat] of originals)part.material=depthMaterials.get(mat);
+          renderer.render(scene,camera);
+          depthCtx.drawImage(renderer.domElement,j*size,(i*3+tilt)*size,size,size);
         }
+      for(const [part,mat] of originals)part.material=mat;
+      for(const m of depthMaterials.values())m.dispose();
+      needleMap?.dispose();
       scene.remove(tree);
       handle.release();
     }
     const rectangles = [];
     for (let row = 0; row < 15; row++)
-      for (let col = 0; col < 4; col++) {
+      for (let col = 0; col < azimuths; col++) {
         const { data } = ctx.getImageData(col * size, row * size, size, size);
         let left = size - 1,
           right = 0,
@@ -124,13 +156,12 @@ try {
       }
     return {
       rectangles,
-      image: atlas.toDataURL('image/webp', 0.93).split(',')[1],
+      image: atlas.toDataURL('image/png').split(',')[1],
+      depth: depths.toDataURL('image/png').split(',')[1],
     };
   });
-  await writeFile(
-    'public/assets/trees/forest-views.webp',
-    Buffer.from(data.image, 'base64'),
-  );
+  await writePortraits(data.image,'public/assets/trees/forest-views.webp');
+  await writeDepth(data.depth,'public/assets/trees/forest-depth.webp');
   await writeFile(
     'src/forest/portraits.json',
     JSON.stringify(data.rectangles) + '\n',
