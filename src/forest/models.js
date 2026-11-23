@@ -35,7 +35,7 @@ export class ForestModels {
             const mesh = new InstancedMesh(
               part.geometry,
               part.material,
-              level === 'near' ? 12 : 32,
+              level === 'near' ? 20 : 56,
             );
             mesh.count = 0;
             mesh.visible = false;
