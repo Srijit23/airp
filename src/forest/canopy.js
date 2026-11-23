@@ -1,3 +1,4 @@
+import {pixelThreshold} from './fade.js';
 import rectangles from './portraits.json' with { type: 'json' };
 import {
   InstancedBufferGeometry,
@@ -57,7 +58,7 @@ export class Canopy {
       uniform vec2 sizes[5];
       uniform vec4 rects[60];
       varying vec2 portrait;
-      varying float lightness, horizon;
+      varying float lightness, horizon, visibility;
       #include <fog_pars_vertex>
       void main(){
         float height=heightIndex>1.5?heights.z:(heightIndex>.5?heights.y:heights.x);
@@ -65,7 +66,8 @@ export class Canopy {
         vec3 center=(modelMatrix*vec4(offset.x,height+size.y*form.y,offset.y,1.)).xyz;
         vec3 eye=cameraPosition-center;
         float range=length(eye.xz);
-        if(show<.5 || range>limit){gl_Position=vec4(2.,2.,2.,1.);return;}
+        visibility=show;
+        if(show<=0. || range>limit){gl_Position=vec4(2.,2.,2.,1.);return;}
         horizon=smoothstep(limit*.82,limit,range);
         vec3 dir=normalize(eye);
         vec3 right=normalize(vec3(eye.z+.0001,0.,-eye.x));
@@ -84,9 +86,10 @@ export class Canopy {
       fragmentShader: `
       uniform sampler2D map;
       varying vec2 portrait;
-      varying float lightness, horizon;
+      varying float lightness, horizon, visibility;
       #include <fog_pars_fragment>
       void main(){
+        if(visibility<1. && ${pixelThreshold} < 1.-visibility)discard;
         vec4 canopy=texture2D(map,portrait);
         if(canopy.a<.22)discard;
         gl_FragColor=vec4(canopy.rgb*lightness,1.);
@@ -120,7 +123,7 @@ export class Canopy {
       new InterleavedBufferAttribute(packed, 3, 2),
     );
     geometry.setAttribute('form', new InterleavedBufferAttribute(packed, 3, 5));
-    const show = new InstancedBufferAttribute(new Uint8Array(count).fill(1), 1);
+    const show = new InstancedBufferAttribute(new Float32Array(count).fill(1), 1);
     show.setUsage(DynamicDrawUsage);
     geometry.setAttribute('show', show);
     geometry.instanceCount = count;
@@ -170,7 +173,7 @@ export class Canopy {
     }
     if (this.hidden !== drawn)
       for (const t of drawn) {
-        t.tile.show.setX(t.k / 8, 0);
+        t.tile.show.setX(t.k / 8, 1-t.end);
         t.tile.show.needsUpdate = true;
       }
     this.hidden = drawn;

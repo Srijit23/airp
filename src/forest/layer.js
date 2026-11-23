@@ -1,3 +1,5 @@
+import { Matrix4 } from 'three';
+import { profiles, DetailBudget, visualPriority, selectDetail, TreeHandoffs } from './lod.js';
 import { Canopy } from './canopy.js';
 import { TILE, tileAt } from '../data/world.js';
 import { ForestModels } from './models.js';
@@ -10,6 +12,11 @@ export class ForestLayer {
     this.models = new ForestModels(scene, assets, fail);
     this.tiles = new Map();
     this.previous = new Map();
+    this.priorTarget=new Map();
+    this.targets=new Map();
+    this.handoffs=new TreeHandoffs();
+    this.budget=new DetailBudget();
+    this.rotation=new Matrix4();
     this.revision = 0;
     this.dirty = true;
     this.workerTimes = [];
@@ -61,11 +68,13 @@ export class ForestLayer {
     return (
       !this.busy &&
       !this.jobs?.length &&
-      !this.dirty &&
+      !this.handoffs.moving && !this.dirty &&
       [...this.models.entries.values()].every((e) => e.ready)
     );
   }
-  update(camera, streamer, quality) {
+  update(lens,streamer,quality,height,dt){
+    const camera=lens.position,profile=profiles[quality];
+    const budgetChanged=this.budget.sample(dt,streamer.settled && !this.busy);
     const tx = tileAt(camera.x),
       tz = tileAt(camera.z),
       config = qualityLevels[quality],
@@ -98,87 +107,51 @@ export class ForestLayer {
       this.dirty = true;
       this.pump();
     }
-    const terrainRevision = streamer.loads + streamer.unloads;
-    if (
-      !this.dirty &&
-      this.modelRevision === this.models.revision &&
-      this.terrainRevision === terrainRevision &&
-      Math.hypot(camera.x - this.cx, camera.y - this.cy, camera.z - this.cz) <
-        1.25
-    )
-      return;
-    const start = performance.now();
-    this.cx = camera.x;
-    this.cy = camera.y;
-    this.cz = camera.z;
-    this.dirty = false;
-    this.modelRevision = this.models.revision;
-    this.terrainRevision = terrainRevision;
-    const candidates = [];
-    for (const [id, tile] of this.tiles) {
-      const ox = tile.x * TILE,
-        oz = tile.z * TILE,
-        records = tile.records;
-      const res = streamer.resolutionAt(ox + 1, oz + 1),
-        h = res === 32 ? 4 : res === 16 ? 3 : 2;
-      if (
-        Math.hypot(
-          Math.max(ox - camera.x, 0, camera.x - ox - TILE),
-          Math.max(oz - camera.z, 0, camera.z - oz - TILE),
-        ) > 150
-      )
-        continue;
-      for (let k = 0; k < records.length; k += 8) {
-        const x = ox + records[k],
-          z = oz + records[k + 1],
-          y = records[k + h];
-        const d = Math.hypot(x - camera.x, z - camera.z, y - camera.y);
-        if (d > 150) continue;
-        const index = id + '/' + k,
-          old = this.previous.get(index);
-        candidates.push({
-          index,
-          k,
-          tile,
-          x,
-          y,
-          z,
-          d,
-          score: d - (old ? 9 : 0),
-          nearScore: d - (old === 'near' ? 9 : 0),
-          species: records[k + 5],
-          scale: records[k + 6],
-          yaw: records[k + 7],
-        });
+    const terrainRevision=streamer.loads+streamer.unloads;
+    const moved=this.cx===undefined || Math.hypot(camera.x-this.cx,camera.y-this.cy,camera.z-this.cz)>1;
+    const turned=!this.orientation || 1-Math.abs(this.orientation.dot(lens.quaternion))>.00012;
+    const reselect=this.dirty || moved || turned || height!==this.height || budgetChanged ||
+      terrainRevision!==this.terrainRevision || this.modelRevision!==this.models.revision;
+    if(!reselect && !this.handoffs.moving)return;
+    const start=performance.now();
+    if(reselect){
+      this.cx=camera.x;this.cy=camera.y;this.cz=camera.z;this.height=height;
+      this.orientation=lens.quaternion.clone();this.dirty=false;
+      this.terrainRevision=terrainRevision;this.modelRevision=this.models.revision;
+      const a=this.rotation.makeRotationFromQuaternion(lens.quaternion).elements;
+      const tanY=Math.tan(lens.fov*Math.PI/360);
+      const view={rx:a[0],ry:a[1],rz:a[2],ux:a[4],uy:a[5],uz:a[6],fx:-a[8],fy:-a[9],fz:-a[10],
+        tanY,tanX:tanY*lens.aspect,focal:Math.max(180,height)/(2*tanY)};
+      const candidates=[];
+      for(const [id,tile] of this.tiles){
+        const ox=tile.x*TILE,oz=tile.z*TILE,r=tile.records;
+        if(Math.hypot(Math.max(ox-camera.x,0,camera.x-ox-TILE),Math.max(oz-camera.z,0,camera.z-oz-TILE))>profile.search)continue;
+        const res=streamer.resolutionAt(ox+1,oz+1),h=res===32?4:res===16?3:2;
+        for(let k=0;k<r.length;k+=8){
+          const x=ox+r[k],z=oz+r[k+1],y=r[k+h];
+          if((x-camera.x)**2+(z-camera.z)**2+(y-camera.y)**2>profile.search**2)continue;
+          const t={x,y,z,k,tile,index:id+'/'+k,species:r[k+5],scale:r[k+6],yaw:r[k+7]};
+          t.pixels=visualPriority(t,camera,view);
+          if(t.pixels>=profile.midPx/1.28)candidates.push(t);
+        }
       }
+      this.targets=selectDetail(candidates,this.priorTarget,profile,this.budget.factor);
+      this.priorTarget=new Map([...this.targets].map(([id,t])=>[id,t.level]));
+      this.keep=new Set([...this.targets.values()].map(t=>t.species));
+      for(const i of this.keep)this.models.request(i);
     }
-    candidates.sort((a, b) => a.nearScore - b.nearScore);
-    const near = candidates
-      .filter((t) => t.d < (this.previous.get(t.index) === 'near' ? 48 : 40))
-      .slice(0, config.near);
-    for (const t of near) t.level = 'near';
-    const far = candidates
-      .filter((t) => !t.level)
-      .sort((a, b) => a.score - b.score)
-      .slice(0, config.mid);
-    for (const t of far) t.level = 'far';
-    const selected = near.concat(far);
-    const drawKey =
-      selected.map((t) => t.index + t.level + t.y).join(',') +
-      '/' +
-      this.models.revision;
-    const drawn =
-      this.drawKey === drawKey ? this.drawn : this.models.draw(selected);
-    this.drawKey = drawKey;
-    this.drawn = drawn;
-    const signature = drawn.map((t) => t.index + t.level + t.y).join(',');
-    this.previous = new Map(drawn.map((t) => [t.index, t.level]));
-    this.updateDistant(drawn, streamer, config);
-    this.stats.updateMs = performance.now() - start;
-    if (this.drawSignature !== signature) {
-      this.drawSignature = signature;
-      this.revision++;
+    const drawn=this.handoffs.advance(this.targets,i=>this.models.entries.get(i)?.ready,
+      t=>this.tiles.get(t.tile.x+','+t.tile.z)===t.tile,dt);
+    const signature=drawn.map(t=>t.index+t.level+t.y+t.start.toFixed(3)+t.end.toFixed(3)).join(',');
+    if(signature!==this.drawSignature || this.keep!==this.lastKeep){
+      this.models.draw(drawn,this.keep);this.drawn=drawn;this.lastKeep=this.keep;
+      this.previous=new Map(drawn.filter(t=>t.weight>=.5).map(t=>[t.index,t.level]));
+      if(signature!==this.drawSignature)this.revision++;
+      this.drawSignature=signature;
     }
+    this.updateDistant(this.drawn||[],streamer,config);
+    this.stats.budgetFactor=this.budget.factor;
+    this.stats.updateMs=performance.now()-start;
   }
   updateDistant(drawn, streamer, config) {
     const totals = this.canopy.update(this.tiles, drawn, streamer, config);
